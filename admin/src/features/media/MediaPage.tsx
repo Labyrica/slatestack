@@ -8,6 +8,8 @@ import { AlertDialog, AlertDialogHeader, AlertDialogTitle, AlertDialogDescriptio
 import { Search } from 'lucide-react'
 import { UploadZone } from './UploadZone'
 import { MediaGrid } from './MediaGrid'
+import { MediaDetailDialog } from './MediaDetailDialog'
+import { CropDialog } from './CropDialog'
 import { useMedia, useDeleteMedia } from '@/hooks/use-media'
 import type { MediaFile, MediaType } from '@/types/media'
 
@@ -18,6 +20,8 @@ export function MediaPage() {
   const [page, setPage] = useState(1)
   const [selectedFile, setSelectedFile] = useState<MediaFile | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
 
   const limit = 20
 
@@ -56,13 +60,23 @@ export function MediaPage() {
   }
 
   const handleEdit = (file: MediaFile) => {
-    // Will be implemented in Task 3
-    console.log('Edit:', file)
+    setSelectedFile(file)
+    setDetailDialogOpen(true)
   }
 
   const handleCrop = (file: MediaFile) => {
-    // Will be implemented in Task 3
-    console.log('Crop:', file)
+    setSelectedFile(file)
+    setCropDialogOpen(true)
+  }
+
+  const handleDeleteFromDetail = () => {
+    setDetailDialogOpen(false)
+    setDeleteDialogOpen(true)
+  }
+
+  const handleCropFromDetail = () => {
+    setDetailDialogOpen(false)
+    setCropDialogOpen(true)
   }
 
   return (
@@ -124,6 +138,20 @@ export function MediaPage() {
           </>
         ) : null}
       </div>
+
+      <MediaDetailDialog
+        open={detailDialogOpen}
+        onOpenChange={setDetailDialogOpen}
+        media={selectedFile}
+        onDelete={handleDeleteFromDetail}
+        onCrop={handleCropFromDetail}
+      />
+
+      <CropDialog
+        open={cropDialogOpen}
+        onOpenChange={setCropDialogOpen}
+        media={selectedFile}
+      />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogHeader>

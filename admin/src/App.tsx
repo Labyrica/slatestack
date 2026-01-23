@@ -1,5 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
+import { AdminRoute } from '@/components/auth/AdminRoute'
 import { LoginPage } from '@/features/auth'
 import { DashboardPage } from '@/features/dashboard'
 import { CollectionsPage } from '@/features/collections'
@@ -30,7 +31,11 @@ const router = createBrowserRouter(
         },
         {
           path: 'users',
-          element: <UsersPage />,
+          element: (
+            <AdminRoute>
+              <UsersPage />
+            </AdminRoute>
+          ),
         },
       ],
     },
