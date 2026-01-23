@@ -12,7 +12,7 @@ import authPlugin from "./plugins/auth.js";
 import { authRoutes, userRoutes } from "./modules/auth/index.js";
 import { collectionRoutes, entryRoutes, publicContentRoutes } from "./modules/content/index.js";
 import { mediaRoutes } from "./modules/media/index.js";
-import { metricsRoutes } from "./modules/metrics/index.js";
+import { metricsRoutes, metricsAdminRoutes } from "./modules/metrics/index.js";
 import staticRoutes from "./routes/static.js";
 import healthRoutes from "./routes/health.js";
 
@@ -73,6 +73,9 @@ export async function buildApp() {
 
   // Register media upload routes
   await fastify.register(mediaRoutes);
+
+  // Register metrics admin routes
+  await fastify.register(metricsAdminRoutes);
 
   // Register metrics routes (public, rate-limited)
   await fastify.register(metricsRoutes);
