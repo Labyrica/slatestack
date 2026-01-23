@@ -70,3 +70,8 @@ export const PaginatedEntryListSchema = Type.Object({
     totalPages: Type.Number(),
   }),
 });
+
+// Stats schema
+export const EntryStatsResponseSchema = Type.Object({
+  total: Type.Number(),
+});

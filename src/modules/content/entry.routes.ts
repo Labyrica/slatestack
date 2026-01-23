@@ -10,6 +10,7 @@ import {
   deleteEntry,
   reorderEntries,
   searchEntries,
+  getEntryStats,
 } from './entry.service.js';
 import {
   CreateEntrySchema,
@@ -21,10 +22,25 @@ import {
   ReorderEntriesSchema,
   SearchEntriesQuerySchema,
   PaginatedEntryListSchema,
+  EntryStatsResponseSchema,
 } from './entry.schemas.js';
 
 export const entryRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<TypeBoxTypeProvider>();
+
+  // GET /api/admin/entries/stats - Get total entry count across all collections
+  app.get('/api/admin/entries/stats', {
+    preHandler: [requireRole('editor')],
+    schema: {
+      response: {
+        200: EntryStatsResponseSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      const stats = await getEntryStats();
+      return reply.send(stats);
+    },
+  });
 
   // GET /api/admin/collections/:collectionId/entries - List/search entries
   app.get('/api/admin/collections/:collectionId/entries', {

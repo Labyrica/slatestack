@@ -443,3 +443,13 @@ export async function getPublishedEntry(
     updatedAt: e.updatedAt.toISOString(),
   };
 }
+
+/**
+ * Get entry statistics across all collections
+ */
+export async function getEntryStats(): Promise<{ total: number }> {
+  const [result] = await db
+    .select({ count: count() })
+    .from(entry);
+  return { total: result.count };
+}
