@@ -119,7 +119,7 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
       try {
         const { id } = request.params;
         await deleteMedia(id);
-        return reply.status(204).send();
+        return reply.status(204).send(null);
       } catch (error) {
         if (error instanceof Error && error.message.includes("not found")) {
           return reply.status(404).send({
