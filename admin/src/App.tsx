@@ -4,6 +4,7 @@ import { AdminRoute } from '@/components/auth/AdminRoute'
 import { LoginPage } from '@/features/auth'
 import { DashboardPage } from '@/features/dashboard'
 import { CollectionsPage } from '@/features/collections'
+import { EntriesPage } from '@/features/entries'
 import { MediaPage } from '@/features/media'
 import { UsersPage } from '@/features/users'
 
@@ -24,6 +25,10 @@ const router = createBrowserRouter(
         {
           path: 'collections',
           element: <CollectionsPage />,
+        },
+        {
+          path: 'collections/:collectionId/entries',
+          element: <EntriesPage />,
         },
         {
           path: 'media',
