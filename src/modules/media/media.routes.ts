@@ -2,8 +2,13 @@ import { FastifyPluginAsync } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
 import { requireRole } from "../auth/auth.service.js";
-import { uploadFile } from "./media.service.js";
-import { UploadResponseSchema } from "./media.schemas.js";
+import { uploadFile, cropImage } from "./media.service.js";
+import {
+  UploadResponseSchema,
+  CropImageSchema,
+  MediaFileResponseSchema,
+  MediaIdParamSchema
+} from "./media.schemas.js";
 
 export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<TypeBoxTypeProvider>();
@@ -59,6 +64,59 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
           return reply.status(400).send({
             error: error.message,
           });
+        }
+        throw error;
+      }
+    }
+  );
+
+  // POST /api/admin/media/:id/crop - Crop image
+  app.post(
+    "/api/admin/media/:id/crop",
+    {
+      preHandler: [requireRole("editor")],
+      schema: {
+        params: MediaIdParamSchema,
+        body: CropImageSchema,
+        response: {
+          200: MediaFileResponseSchema,
+          400: Type.Object({ error: Type.String() }),
+          404: Type.Object({ error: Type.String() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        const { left, top, width, height } = request.body;
+
+        const croppedFile = await cropImage(
+          id,
+          left,
+          top,
+          width,
+          height,
+          request.user!.id
+        );
+
+        return reply.send(croppedFile);
+      } catch (error) {
+        if (error instanceof Error) {
+          // Handle not found
+          if (error.message.includes("not found")) {
+            return reply.status(404).send({
+              error: error.message,
+            });
+          }
+          // Handle invalid coordinates or non-image files
+          if (
+            error.message.includes("Invalid crop coordinates") ||
+            error.message.includes("Only image files")
+          ) {
+            return reply.status(400).send({
+              error: error.message,
+            });
+          }
         }
         throw error;
       }

@@ -21,3 +21,35 @@ export const MediaFileResponseSchema = Type.Object({
 export const UploadResponseSchema = Type.Object({
   files: Type.Array(MediaFileResponseSchema),
 });
+
+export const MediaListQuerySchema = Type.Object({
+  page: Type.Optional(Type.String()),
+  limit: Type.Optional(Type.String()),
+  type: Type.Optional(Type.String()),
+  q: Type.Optional(Type.String()),
+});
+
+export const PaginatedMediaListSchema = Type.Object({
+  data: Type.Array(MediaFileResponseSchema),
+  meta: Type.Object({
+    page: Type.Number(),
+    limit: Type.Number(),
+    total: Type.Number(),
+    totalPages: Type.Number(),
+  }),
+});
+
+export const UpdateMediaSchema = Type.Object({
+  altText: Type.Optional(Type.String()),
+});
+
+export const MediaIdParamSchema = Type.Object({
+  id: Type.String(),
+});
+
+export const CropImageSchema = Type.Object({
+  left: Type.Integer({ minimum: 0 }),
+  top: Type.Integer({ minimum: 0 }),
+  width: Type.Integer({ minimum: 1 }),
+  height: Type.Integer({ minimum: 1 }),
+});
