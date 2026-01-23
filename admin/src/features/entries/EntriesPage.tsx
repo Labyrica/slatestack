@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Shell } from '@/components/layout/Shell'
 import { Button } from '@/components/ui/button'
@@ -159,7 +159,7 @@ export function EntriesPage() {
             </div>
             <Select
               value={statusFilter}
-              onValueChange={handleStatusChange}
+              onChange={(e) => handleStatusChange(e.target.value)}
             >
               <option value="all">All Status</option>
               <option value="draft">Draft</option>

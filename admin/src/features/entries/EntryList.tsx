@@ -13,7 +13,7 @@ import {
 import type { Entry } from '@/types/entry'
 import type { Collection } from '@/types/collection'
 import { Edit, Trash2, FileText } from 'lucide-react'
-import { UseMutationResult } from '@tanstack/react-query'
+import type { UseMutationResult } from '@tanstack/react-query'
 
 interface EntryListProps {
   entries: Entry[]
