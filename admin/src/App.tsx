@@ -6,6 +6,7 @@ import { DashboardPage } from '@/features/dashboard'
 import { CollectionsPage } from '@/features/collections'
 import { EntriesPage } from '@/features/entries'
 import { MediaPage } from '@/features/media'
+import { MetricsPage } from '@/features/metrics'
 import { UsersPage } from '@/features/users'
 
 const router = createBrowserRouter(
@@ -33,6 +34,10 @@ const router = createBrowserRouter(
         {
           path: 'media',
           element: <MediaPage />,
+        },
+        {
+          path: 'metrics',
+          element: <MetricsPage />,
         },
         {
           path: 'users',
