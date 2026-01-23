@@ -3,7 +3,7 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { LoginPage } from '@/features/auth'
 import { DashboardPage } from '@/features/dashboard'
 import { CollectionsPage } from '@/pages/CollectionsPage'
-import { MediaPage } from '@/pages/MediaPage'
+import { MediaPage } from '@/features/media'
 import { UsersPage } from '@/pages/UsersPage'
 
 const router = createBrowserRouter(
