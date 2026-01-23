@@ -13,6 +13,7 @@ import { authRoutes, userRoutes } from "./modules/auth/index.js";
 import { collectionRoutes, entryRoutes, publicContentRoutes } from "./modules/content/index.js";
 import { mediaRoutes } from "./modules/media/index.js";
 import staticRoutes from "./routes/static.js";
+import healthRoutes from "./routes/health.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -50,6 +51,9 @@ export async function buildApp() {
     prefix: "/uploads/",
     decorateReply: false,
   });
+
+  // Register health check (before auth, so it doesn't require authentication)
+  await fastify.register(healthRoutes);
 
   // Register auth plugin
   await fastify.register(authPlugin);
