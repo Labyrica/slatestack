@@ -1,4 +1,4 @@
-import { pgTable, text, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, boolean, timestamp, jsonb, integer, unique } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 
 export const user = pgTable("user", {
@@ -73,5 +73,42 @@ export const accountRelations = relations(account, ({ one }) => ({
   user: one(user, {
     fields: [account.userId],
     references: [user.id],
+  }),
+}));
+
+// Content tables
+export const collection = pgTable("collection", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  fields: jsonb("fields").notNull(),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export const entry = pgTable("entry", {
+  id: text("id").primaryKey(),
+  collectionId: text("collectionId")
+    .notNull()
+    .references(() => collection.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull(),
+  data: jsonb("data").notNull(),
+  status: text("status").notNull().default("draft"),
+  position: integer("position").notNull().default(0),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+}, (table) => ({
+  uniqueCollectionSlug: unique().on(table.collectionId, table.slug),
+}));
+
+// Content relations
+export const collectionRelations = relations(collection, ({ many }) => ({
+  entries: many(entry),
+}));
+
+export const entryRelations = relations(entry, ({ one }) => ({
+  collection: one(collection, {
+    fields: [entry.collectionId],
+    references: [collection.id],
   }),
 }));
