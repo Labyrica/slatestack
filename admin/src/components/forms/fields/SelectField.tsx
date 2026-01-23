@@ -1,0 +1,39 @@
+import { Controller, Control } from 'react-hook-form'
+import { Select } from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
+import type { FieldDefinition } from '@/types/collection'
+
+interface SelectFieldProps {
+  field: FieldDefinition
+  control: Control<any>
+  error?: string
+}
+
+export function SelectField({ field, control, error }: SelectFieldProps) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor={field.name}>
+        {field.label}
+        {field.required && <span className="text-destructive"> *</span>}
+      </Label>
+      <Controller
+        name={field.name}
+        control={control}
+        rules={{
+          required: field.required ? `${field.label} is required` : false,
+        }}
+        render={({ field: controllerField }) => (
+          <Select {...controllerField} id={field.name}>
+            <option value="">Select {field.label.toLowerCase()}</option>
+            {field.options?.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </Select>
+        )}
+      />
+      {error && <p className="text-sm text-destructive">{error}</p>}
+    </div>
+  )
+}
