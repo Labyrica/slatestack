@@ -53,3 +53,9 @@ export const CropImageSchema = Type.Object({
   width: Type.Integer({ minimum: 1 }),
   height: Type.Integer({ minimum: 1 }),
 });
+
+export const ImageInfoSchema = Type.Object({
+  width: Type.Number(),
+  height: Type.Number(),
+  format: Type.String(),
+});
