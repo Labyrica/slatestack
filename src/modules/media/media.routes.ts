@@ -2,12 +2,13 @@ import { FastifyPluginAsync } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
 import { requireRole } from "../auth/auth.service.js";
-import { uploadFile, cropImage } from "./media.service.js";
+import { uploadFile, cropImage, getImageInfo } from "./media.service.js";
 import {
   UploadResponseSchema,
   CropImageSchema,
   MediaFileResponseSchema,
-  MediaIdParamSchema
+  MediaIdParamSchema,
+  ImageInfoSchema
 } from "./media.schemas.js";
 
 export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
@@ -64,6 +65,45 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
           return reply.status(400).send({
             error: error.message,
           });
+        }
+        throw error;
+      }
+    }
+  );
+
+  // GET /api/admin/media/:id/info - Get image metadata
+  app.get(
+    "/api/admin/media/:id/info",
+    {
+      preHandler: [requireRole("editor")],
+      schema: {
+        params: MediaIdParamSchema,
+        response: {
+          200: ImageInfoSchema,
+          400: Type.Object({ error: Type.String() }),
+          404: Type.Object({ error: Type.String() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        const info = await getImageInfo(id);
+        return reply.send(info);
+      } catch (error) {
+        if (error instanceof Error) {
+          // Handle not found
+          if (error.message.includes("not found")) {
+            return reply.status(404).send({
+              error: error.message,
+            });
+          }
+          // Handle non-image files
+          if (error.message.includes("Only image files")) {
+            return reply.status(400).send({
+              error: error.message,
+            });
+          }
         }
         throw error;
       }
