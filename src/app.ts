@@ -6,7 +6,7 @@ import fastifyCors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
 import { envSchema } from "./shared/config/index.js";
 import authPlugin from "./plugins/auth.js";
-import { authRoutes } from "./modules/auth/index.js";
+import { authRoutes, userRoutes } from "./modules/auth/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -34,6 +34,9 @@ export async function buildApp() {
 
   // Register auth routes
   await fastify.register(authRoutes);
+
+  // Register user management routes
+  await fastify.register(userRoutes);
 
   return fastify;
 }
