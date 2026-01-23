@@ -116,3 +116,30 @@ export const entryRelations = relations(entry, ({ one }) => ({
     references: [collection.id],
   }),
 }));
+
+// Media table
+export const mediaFile = pgTable("media_file", {
+  id: text("id").primaryKey(),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  size: integer("size").notNull(),
+  width: integer("width"),
+  height: integer("height"),
+  altText: text("alt_text"),
+  path: text("path").notNull(),
+  thumbnailPath: text("thumbnail_path"),
+  uploadedBy: text("uploaded_by")
+    .notNull()
+    .references(() => user.id),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+// Media relations
+export const mediaFileRelations = relations(mediaFile, ({ one }) => ({
+  uploader: one(user, {
+    fields: [mediaFile.uploadedBy],
+    references: [user.id],
+  }),
+}));
