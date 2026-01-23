@@ -9,10 +9,33 @@ const __dirname = path.dirname(__filename);
 
 export default async function staticRoutes(fastify: FastifyInstance) {
   const adminDistPath = path.resolve(__dirname, "../../admin/dist");
-  const indexHtmlPath = path.join(adminDistPath, "index.html");
+  const publicPath = path.resolve(__dirname, "../../public");
+
+  // Serve public demo frontend at /public/
+  if (existsSync(publicPath)) {
+    await fastify.register(fastifyStatic, {
+      root: publicPath,
+      prefix: "/public/",
+      decorateReply: false,
+    });
+
+    // Serve public index.html at root /
+    const publicIndexPath = path.join(publicPath, "index.html");
+    if (existsSync(publicIndexPath)) {
+      const publicIndexHtml = readFileSync(publicIndexPath, "utf-8");
+
+      fastify.get("/", async (request, reply) => {
+        reply.type("text/html").send(publicIndexHtml);
+      });
+
+      fastify.log.info(`Demo frontend available at /`);
+    }
+  }
 
   // Only register admin static serving if the dist folder exists
   if (existsSync(adminDistPath)) {
+    const indexHtmlPath = path.join(adminDistPath, "index.html");
+
     // Register static file serving for admin SPA
     await fastify.register(fastifyStatic, {
       root: adminDistPath,

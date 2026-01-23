@@ -17,7 +17,11 @@ export const auth = betterAuth({
   plugins: [
     admin(), // Enables role field and admin APIs
   ],
-  trustedOrigins: [process.env.BETTER_AUTH_URL!],
+  trustedOrigins: [
+    process.env.BETTER_AUTH_URL!,
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+  ],
 });
 
 export type Auth = typeof auth;
