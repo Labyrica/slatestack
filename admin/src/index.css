@@ -71,5 +71,34 @@
   }
   body {
     @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+@layer utilities {
+  /* Arsenal tracking variants */
+  .tracking-arsenal-tight {
+    letter-spacing: -0.025em;
+  }
+  .tracking-arsenal-wide {
+    letter-spacing: 0.08em;
+  }
+
+  /* Arsenal text opacity utilities */
+  .text-secondary {
+    color: hsl(0 0% 100% / 0.85);
+  }
+  .text-tertiary {
+    color: hsl(0 0% 100% / 0.6);
+  }
+  .text-muted-arsenal {
+    color: hsl(0 0% 100% / 0.45);
+  }
+
+  /* Arsenal transition timing */
+  .transition-arsenal {
+    transition-duration: 400ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
