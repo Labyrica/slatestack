@@ -1,0 +1,203 @@
+import { FastifyPluginAsync } from 'fastify';
+import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
+import { Type } from '@sinclair/typebox';
+import { requireRole } from '../auth/auth.service.js';
+import {
+  createEntry,
+  getEntry,
+  listEntries,
+  updateEntry,
+  deleteEntry,
+  reorderEntries,
+} from './entry.service.js';
+import {
+  CreateEntrySchema,
+  UpdateEntrySchema,
+  EntryResponseSchema,
+  EntryListResponseSchema,
+  CollectionIdParamSchema,
+  EntryIdParamSchema,
+  ReorderEntriesSchema,
+} from './entry.schemas.js';
+
+export const entryRoutes: FastifyPluginAsync = async (fastify) => {
+  const app = fastify.withTypeProvider<TypeBoxTypeProvider>();
+
+  // GET /api/admin/collections/:collectionId/entries - List entries
+  app.get('/api/admin/collections/:collectionId/entries', {
+    preHandler: [requireRole('editor')],
+    schema: {
+      params: CollectionIdParamSchema,
+      querystring: Type.Object({
+        status: Type.Optional(Type.Union([Type.Literal('draft'), Type.Literal('published')])),
+      }),
+      response: {
+        200: EntryListResponseSchema,
+      },
+    },
+    handler: async (request, reply) => {
+      const { collectionId } = request.params;
+      const { status } = request.query;
+      const entries = await listEntries(collectionId, status ? { status } : undefined);
+      return reply.send(entries);
+    },
+  });
+
+  // GET /api/admin/collections/:collectionId/entries/:entryId - Get single entry
+  app.get('/api/admin/collections/:collectionId/entries/:entryId', {
+    preHandler: [requireRole('editor')],
+    schema: {
+      params: EntryIdParamSchema,
+      response: {
+        200: EntryResponseSchema,
+        404: Type.Object({ error: Type.String() }),
+      },
+    },
+    handler: async (request, reply) => {
+      const { collectionId, entryId } = request.params;
+      const entry = await getEntry(collectionId, entryId);
+
+      if (!entry) {
+        return reply.status(404).send({ error: 'Entry not found' });
+      }
+
+      return reply.send(entry);
+    },
+  });
+
+  // POST /api/admin/collections/:collectionId/entries - Create entry
+  app.post('/api/admin/collections/:collectionId/entries', {
+    preHandler: [requireRole('editor')],
+    schema: {
+      params: CollectionIdParamSchema,
+      body: CreateEntrySchema,
+      response: {
+        201: EntryResponseSchema,
+        400: Type.Object({
+          error: Type.String(),
+          details: Type.Optional(
+            Type.Array(
+              Type.Object({
+                field: Type.String(),
+                message: Type.String(),
+              })
+            )
+          ),
+        }),
+        404: Type.Object({ error: Type.String() }),
+      },
+    },
+    handler: async (request, reply) => {
+      const { collectionId } = request.params;
+      try {
+        const newEntry = await createEntry(collectionId, request.body);
+        return reply.status(201).send(newEntry);
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message === 'Collection not found') {
+            return reply.status(404).send({ error: error.message });
+          }
+          if (error.message === 'Validation failed') {
+            const validationError = error as Error & {
+              details: Array<{ field: string; message: string }>;
+            };
+            return reply.status(400).send({
+              error: error.message,
+              details: validationError.details,
+            });
+          }
+        }
+        throw error;
+      }
+    },
+  });
+
+  // PATCH /api/admin/collections/:collectionId/entries/:entryId - Update entry
+  app.patch('/api/admin/collections/:collectionId/entries/:entryId', {
+    preHandler: [requireRole('editor')],
+    schema: {
+      params: EntryIdParamSchema,
+      body: UpdateEntrySchema,
+      response: {
+        200: EntryResponseSchema,
+        400: Type.Object({
+          error: Type.String(),
+          details: Type.Optional(
+            Type.Array(
+              Type.Object({
+                field: Type.String(),
+                message: Type.String(),
+              })
+            )
+          ),
+        }),
+        404: Type.Object({ error: Type.String() }),
+      },
+    },
+    handler: async (request, reply) => {
+      const { collectionId, entryId } = request.params;
+      try {
+        const updatedEntry = await updateEntry(collectionId, entryId, request.body);
+        return reply.send(updatedEntry);
+      } catch (error) {
+        if (error instanceof Error) {
+          if (error.message === 'Entry not found' || error.message === 'Collection not found') {
+            return reply.status(404).send({ error: error.message });
+          }
+          if (error.message === 'Validation failed') {
+            const validationError = error as Error & {
+              details: Array<{ field: string; message: string }>;
+            };
+            return reply.status(400).send({
+              error: error.message,
+              details: validationError.details,
+            });
+          }
+        }
+        throw error;
+      }
+    },
+  });
+
+  // DELETE /api/admin/collections/:collectionId/entries/:entryId - Delete entry
+  app.delete('/api/admin/collections/:collectionId/entries/:entryId', {
+    preHandler: [requireRole('editor')],
+    schema: {
+      params: EntryIdParamSchema,
+      response: {
+        204: Type.Null(),
+        404: Type.Object({ error: Type.String() }),
+      },
+    },
+    handler: async (request, reply) => {
+      const { collectionId, entryId } = request.params;
+      try {
+        await deleteEntry(collectionId, entryId);
+        return reply.status(204).send(null);
+      } catch (error) {
+        if (error instanceof Error && error.message === 'Entry not found') {
+          return reply.status(404).send({ error: error.message });
+        }
+        throw error;
+      }
+    },
+  });
+
+  // POST /api/admin/collections/:collectionId/entries/reorder - Reorder entries
+  app.post('/api/admin/collections/:collectionId/entries/reorder', {
+    preHandler: [requireRole('editor')],
+    schema: {
+      params: CollectionIdParamSchema,
+      body: ReorderEntriesSchema,
+      response: {
+        204: Type.Null(),
+      },
+    },
+    handler: async (request, reply) => {
+      const { collectionId } = request.params;
+      const { orderedIds } = request.body;
+      await reorderEntries(collectionId, orderedIds);
+      return reply.status(204).send(null);
+    },
+  });
+};
