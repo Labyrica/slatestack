@@ -94,14 +94,17 @@ export function DynamicForm({
       </div>
 
       {/* Dynamic fields based on collection schema */}
-      {collection.fields.map((field) => (
-        <FieldRenderer
-          key={field.id}
-          field={field}
-          control={control}
-          error={errors[field.name]?.message as string}
-        />
-      ))}
+      {collection.fields.map((field) => {
+        const fieldError = errors[field.name as keyof typeof errors]
+        return (
+          <FieldRenderer
+            key={field.id}
+            field={field}
+            control={control}
+            error={fieldError?.message as string | undefined}
+          />
+        )
+      })}
 
       {/* Form actions */}
       <div className="flex justify-end gap-2 pt-4">

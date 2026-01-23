@@ -1,0 +1,39 @@
+import { useQuery } from '@tanstack/react-query'
+import { fetcher } from '@/lib/api'
+
+interface MetricsSummary {
+  total: number
+  today: number
+  last7Days: number
+  trend: number[]
+}
+
+interface TopPage {
+  path: string
+  views: number
+}
+
+interface TopPagesResponse {
+  data: TopPage[]
+}
+
+export function useMetricsSummary() {
+  return useQuery({
+    queryKey: ['metrics', 'summary'],
+    queryFn: () => fetcher<MetricsSummary>('/admin/metrics/summary'),
+  })
+}
+
+interface UseTopPagesOptions {
+  days?: number
+  limit?: number
+}
+
+export function useTopPages(options: UseTopPagesOptions = {}) {
+  const { days = 7, limit = 20 } = options
+
+  return useQuery({
+    queryKey: ['metrics', 'top-pages', days, limit],
+    queryFn: () => fetcher<TopPagesResponse>(`/admin/metrics/top-pages?days=${days}&limit=${limit}`),
+  })
+}

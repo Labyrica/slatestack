@@ -1,5 +1,6 @@
 import { Shell } from '@/components/layout/Shell'
 import { StatsCard } from './StatsCard'
+import { MetricsCard } from './MetricsCard'
 import { useStats } from '@/hooks/use-stats'
 import { FolderOpen, FileText, Image, Users } from 'lucide-react'
 
@@ -39,6 +40,11 @@ export function DashboardPage() {
             icon={Users}
             isLoading={isLoading}
           />
+        </div>
+
+        {/* Metrics card with trend visualization */}
+        <div className="mt-4">
+          <MetricsCard />
         </div>
       </div>
     </Shell>

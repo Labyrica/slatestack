@@ -1,4 +1,5 @@
-import { Controller, Control } from 'react-hook-form'
+import { Controller } from 'react-hook-form'
+import type { Control } from 'react-hook-form'
 import { Switch } from '@/components/ui/switch'
 import { Label } from '@/components/ui/label'
 import type { FieldDefinition } from '@/types/collection'

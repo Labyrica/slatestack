@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Controller, Control } from 'react-hook-form'
+import { Controller } from 'react-hook-form'
+import type { Control } from 'react-hook-form'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import type { FieldDefinition } from '@/types/collection'

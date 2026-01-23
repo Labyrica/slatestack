@@ -1,4 +1,5 @@
-import { Controller, Control } from 'react-hook-form'
+import { Controller } from 'react-hook-form'
+import type { Control } from 'react-hook-form'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import type { FieldDefinition } from '@/types/collection'

@@ -1,4 +1,5 @@
-import { Controller, Control } from 'react-hook-form'
+import { Controller } from 'react-hook-form'
+import type { Control } from 'react-hook-form'
 import { Label } from '@/components/ui/label'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
