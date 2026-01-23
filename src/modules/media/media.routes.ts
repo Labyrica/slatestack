@@ -2,17 +2,134 @@ import { FastifyPluginAsync } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
 import { requireRole } from "../auth/auth.service.js";
-import { uploadFile, cropImage, getImageInfo } from "./media.service.js";
+import {
+  uploadFile,
+  cropImage,
+  getImageInfo,
+  listMedia,
+  getMedia,
+  updateMedia,
+  deleteMedia,
+} from "./media.service.js";
 import {
   UploadResponseSchema,
   CropImageSchema,
   MediaFileResponseSchema,
   MediaIdParamSchema,
-  ImageInfoSchema
+  ImageInfoSchema,
+  MediaListQuerySchema,
+  PaginatedMediaListSchema,
+  UpdateMediaSchema,
 } from "./media.schemas.js";
 
 export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<TypeBoxTypeProvider>();
+
+  // GET /api/admin/media - List all media files with pagination/filtering/search
+  app.get(
+    "/api/admin/media",
+    {
+      preHandler: [requireRole("editor")],
+      schema: {
+        querystring: MediaListQuerySchema,
+        response: {
+          200: PaginatedMediaListSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const result = await listMedia(request.query);
+      return reply.send(result);
+    }
+  );
+
+  // GET /api/admin/media/:id - Get single media file
+  app.get(
+    "/api/admin/media/:id",
+    {
+      preHandler: [requireRole("editor")],
+      schema: {
+        params: MediaIdParamSchema,
+        response: {
+          200: MediaFileResponseSchema,
+          404: Type.Object({ error: Type.String() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        const media = await getMedia(id);
+        return reply.send(media);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("not found")) {
+          return reply.status(404).send({
+            error: error.message,
+          });
+        }
+        throw error;
+      }
+    }
+  );
+
+  // PATCH /api/admin/media/:id - Update media file (alt text)
+  app.patch(
+    "/api/admin/media/:id",
+    {
+      preHandler: [requireRole("editor")],
+      schema: {
+        params: MediaIdParamSchema,
+        body: UpdateMediaSchema,
+        response: {
+          200: MediaFileResponseSchema,
+          404: Type.Object({ error: Type.String() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        const media = await updateMedia(id, request.body);
+        return reply.send(media);
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("not found")) {
+          return reply.status(404).send({
+            error: error.message,
+          });
+        }
+        throw error;
+      }
+    }
+  );
+
+  // DELETE /api/admin/media/:id - Delete media file
+  app.delete(
+    "/api/admin/media/:id",
+    {
+      preHandler: [requireRole("editor")],
+      schema: {
+        params: MediaIdParamSchema,
+        response: {
+          204: Type.Null(),
+          404: Type.Object({ error: Type.String() }),
+        },
+      },
+    },
+    async (request, reply) => {
+      try {
+        const { id } = request.params;
+        await deleteMedia(id);
+        return reply.status(204).send();
+      } catch (error) {
+        if (error instanceof Error && error.message.includes("not found")) {
+          return reply.status(404).send({
+            error: error.message,
+          });
+        }
+        throw error;
+      }
+    }
+  );
 
   // POST /api/admin/media/upload - Upload files
   app.post(
