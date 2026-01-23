@@ -12,6 +12,7 @@ import authPlugin from "./plugins/auth.js";
 import { authRoutes, userRoutes } from "./modules/auth/index.js";
 import { collectionRoutes, entryRoutes, publicContentRoutes } from "./modules/content/index.js";
 import { mediaRoutes } from "./modules/media/index.js";
+import staticRoutes from "./routes/static.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -70,6 +71,9 @@ export async function buildApp() {
 
   // Register public content routes (no auth required)
   await fastify.register(publicContentRoutes);
+
+  // Register static file serving for admin SPA (must be last)
+  await fastify.register(staticRoutes);
 
   return fastify;
 }
