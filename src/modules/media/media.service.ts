@@ -250,6 +250,102 @@ export async function getMedia(id: string): Promise<MediaFileResponse> {
   return toMediaFileResponse(result);
 }
 
+export async function getImageInfo(
+  mediaId: string
+): Promise<{ width: number; height: number; format: string }> {
+  // Fetch media file
+  const [file] = await db
+    .select()
+    .from(mediaFile)
+    .where(eq(mediaFile.id, mediaId));
+
+  if (!file) {
+    throw new Error("Media file not found");
+  }
+
+  // Validate it's an image
+  if (!file.mimeType.startsWith("image/")) {
+    throw new Error("Only image files have dimensions");
+  }
+
+  // Get image metadata
+  const image = sharp(file.path);
+  const metadata = await image.metadata();
+
+  if (!metadata.width || !metadata.height || !metadata.format) {
+    throw new Error("Unable to read image metadata");
+  }
+
+  return {
+    width: metadata.width,
+    height: metadata.height,
+    format: metadata.format,
+  };
+}
+
+export async function updateMedia(
+  id: string,
+  updates: { altText?: string }
+): Promise<MediaFileResponse> {
+  const [result] = await db
+    .update(mediaFile)
+    .set({
+      altText: updates.altText,
+      updatedAt: new Date(),
+    })
+    .where(eq(mediaFile.id, id))
+    .returning();
+
+  if (!result) {
+    throw new Error("Media file not found");
+  }
+
+  return toMediaFileResponse(result);
+}
+
+export async function deleteMedia(id: string): Promise<void> {
+  // Fetch media file to get paths
+  const [file] = await db
+    .select()
+    .from(mediaFile)
+    .where(eq(mediaFile.id, id));
+
+  if (!file) {
+    throw new Error("Media file not found");
+  }
+
+  // Delete files from disk
+  try {
+    // Delete original file
+    await fs.unlink(file.path);
+
+    // Delete WebP version if it's an image
+    if (file.mimeType.startsWith("image/")) {
+      const webpPath = file.path.replace(/\.[^.]+$/, ".webp");
+      try {
+        await fs.unlink(webpPath);
+      } catch (error) {
+        // WebP might not exist for some images
+      }
+    }
+
+    // Delete thumbnail if it exists
+    if (file.thumbnailPath) {
+      try {
+        await fs.unlink(file.thumbnailPath);
+      } catch (error) {
+        // Thumbnail might not exist
+      }
+    }
+  } catch (error) {
+    // Log error but continue with database deletion
+    console.error("Error deleting files:", error);
+  }
+
+  // Delete database record
+  await db.delete(mediaFile).where(eq(mediaFile.id, id));
+}
+
 export async function cropImage(
   mediaId: string,
   left: number,
