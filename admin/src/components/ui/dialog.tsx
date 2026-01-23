@@ -23,11 +23,20 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop with blur */}
       <div
-        className="fixed inset-0 bg-black/50"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-[400ms]"
         onClick={() => onOpenChange?.(false)}
       />
-      <div className="relative z-50 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-lg bg-background p-6 shadow-lg">
+      {/* Dialog content */}
+      <div
+        className={cn(
+          "relative z-50 max-h-[90vh] w-full max-w-2xl overflow-auto",
+          "rounded-[16px] border border-white/15 bg-black p-6",
+          "shadow-[0_16px_32px_rgba(0,0,0,0.5)]",
+          "transition-all duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+        )}
+      >
         {children}
       </div>
     </div>
@@ -47,7 +56,7 @@ interface DialogTitleProps {
 }
 
 export function DialogTitle({ children }: DialogTitleProps) {
-  return <h2 className="text-xl font-semibold">{children}</h2>
+  return <h2 className="text-xl font-semibold tracking-tight">{children}</h2>
 }
 
 interface DialogDescriptionProps {
@@ -55,7 +64,7 @@ interface DialogDescriptionProps {
 }
 
 export function DialogDescription({ children }: DialogDescriptionProps) {
-  return <p className="text-sm text-muted-foreground mt-2">{children}</p>
+  return <p className="text-sm text-white/60 mt-2">{children}</p>
 }
 
 interface DialogFooterProps {
@@ -64,7 +73,7 @@ interface DialogFooterProps {
 
 export function DialogFooter({ children }: DialogFooterProps) {
   return (
-    <div className="mt-6 flex justify-end gap-2">
+    <div className="mt-6 flex justify-end gap-3">
       {children}
     </div>
   )
