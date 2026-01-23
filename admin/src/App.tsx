@@ -2,9 +2,9 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { LoginPage } from '@/features/auth'
 import { DashboardPage } from '@/features/dashboard'
-import { CollectionsPage } from '@/pages/CollectionsPage'
+import { CollectionsPage } from '@/features/collections'
 import { MediaPage } from '@/features/media'
-import { UsersPage } from '@/pages/UsersPage'
+import { UsersPage } from '@/features/users'
 
 const router = createBrowserRouter(
   [
