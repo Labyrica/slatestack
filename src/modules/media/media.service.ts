@@ -6,6 +6,7 @@ import { fileTypeFromBuffer } from "file-type";
 import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
+import { eq, or, ilike, sql, desc, count, inArray } from "drizzle-orm";
 import type { MediaFileInput, MediaFileResponse } from "./media.types.js";
 
 const ALLOWED_TYPES = [
@@ -17,6 +18,13 @@ const ALLOWED_TYPES = [
   "video/mp4",
   "audio/mpeg",
 ];
+
+const TYPE_FILTERS: Record<string, string[]> = {
+  image: ["image/jpeg", "image/png", "image/gif", "image/webp"],
+  document: ["application/pdf"],
+  video: ["video/mp4"],
+  audio: ["audio/mpeg"],
+};
 
 export async function uploadFile(
   buffer: Buffer,
@@ -144,4 +152,209 @@ function buildMediaUrl(filePath: string): string {
     return "/" + normalized.substring(uploadsIndex);
   }
   return filePath;
+}
+
+function toMediaFileResponse(row: typeof mediaFile.$inferSelect): MediaFileResponse {
+  return {
+    id: row.id,
+    filename: row.filename,
+    originalName: row.originalName,
+    mimeType: row.mimeType,
+    size: row.size,
+    width: row.width,
+    height: row.height,
+    altText: row.altText,
+    path: row.path,
+    thumbnailPath: row.thumbnailPath,
+    url: buildMediaUrl(row.path),
+    thumbnailUrl: row.thumbnailPath ? buildMediaUrl(row.thumbnailPath) : null,
+    uploadedBy: row.uploadedBy,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export async function listMedia(params: {
+  page?: string;
+  limit?: string;
+  type?: string;
+  q?: string;
+}): Promise<{
+  data: MediaFileResponse[];
+  meta: { page: number; limit: number; total: number; totalPages: number };
+}> {
+  // Parse and validate pagination params
+  const page = Math.max(1, parseInt(params.page || "1", 10));
+  const limit = Math.min(100, Math.max(1, parseInt(params.limit || "20", 10)));
+  const offset = (page - 1) * limit;
+
+  // Build where conditions
+  const conditions = [];
+
+  // Filter by type category
+  if (params.type && TYPE_FILTERS[params.type]) {
+    conditions.push(inArray(mediaFile.mimeType, TYPE_FILTERS[params.type]));
+  }
+
+  // Search by filename or altText
+  if (params.q) {
+    const searchTerm = `%${params.q}%`;
+    conditions.push(
+      or(
+        ilike(mediaFile.filename, searchTerm),
+        ilike(mediaFile.originalName, searchTerm),
+        ilike(mediaFile.altText, searchTerm)
+      )
+    );
+  }
+
+  // Build query
+  const whereClause = conditions.length > 0 ? sql`${sql.join(conditions, sql` AND `)}` : undefined;
+
+  // Get total count
+  const [{ total }] = await db
+    .select({ total: count() })
+    .from(mediaFile)
+    .where(whereClause);
+
+  // Get paginated results
+  const results = await db
+    .select()
+    .from(mediaFile)
+    .where(whereClause)
+    .orderBy(desc(mediaFile.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  return {
+    data: results.map(toMediaFileResponse),
+    meta: {
+      page,
+      limit,
+      total: Number(total),
+      totalPages: Math.ceil(Number(total) / limit),
+    },
+  };
+}
+
+export async function getMedia(id: string): Promise<MediaFileResponse> {
+  const [result] = await db
+    .select()
+    .from(mediaFile)
+    .where(eq(mediaFile.id, id));
+
+  if (!result) {
+    throw new Error("Media file not found");
+  }
+
+  return toMediaFileResponse(result);
+}
+
+export async function cropImage(
+  mediaId: string,
+  left: number,
+  top: number,
+  width: number,
+  height: number,
+  uploadedBy: string
+): Promise<MediaFileResponse> {
+  // Fetch original media file
+  const [original] = await db
+    .select()
+    .from(mediaFile)
+    .where(eq(mediaFile.id, mediaId));
+
+  if (!original) {
+    throw new Error("Media file not found");
+  }
+
+  // Validate it's an image
+  if (!original.mimeType.startsWith("image/")) {
+    throw new Error("Only image files can be cropped");
+  }
+
+  // Load image to get metadata and validate crop coordinates
+  const image = sharp(original.path);
+  const metadata = await image.metadata();
+
+  if (!metadata.width || !metadata.height) {
+    throw new Error("Unable to read image dimensions");
+  }
+
+  // Validate crop coordinates are within bounds
+  if (
+    left < 0 ||
+    top < 0 ||
+    width <= 0 ||
+    height <= 0 ||
+    left + width > metadata.width ||
+    top + height > metadata.height
+  ) {
+    throw new Error(
+      `Invalid crop coordinates. Image dimensions: ${metadata.width}x${metadata.height}, crop: ${left},${top},${width},${height}`
+    );
+  }
+
+  // Generate unique filename for cropped image
+  const cropFilename = generateUniqueFilename(original.originalName);
+  const uploadDir = await getUploadDir();
+  const cropPath = path.join(uploadDir, cropFilename);
+
+  // Extract region and convert to WebP
+  await image
+    .extract({ left, top, width, height })
+    .toFormat("webp")
+    .toFile(cropPath);
+
+  // Generate thumbnail for cropped image
+  const thumbnailPath = cropPath.replace(/\.[^.]+$/, "-thumb.webp");
+  await sharp(cropPath)
+    .resize(200, 200, { fit: "cover" })
+    .webp()
+    .toFile(thumbnailPath);
+
+  // Get file size
+  const stats = await fs.stat(cropPath);
+
+  // Create new media record (original preserved)
+  const fileData: MediaFileInput = {
+    filename: cropFilename,
+    originalName: `cropped-${original.originalName}`,
+    mimeType: "image/webp",
+    size: stats.size,
+    width,
+    height,
+    path: cropPath,
+    thumbnailPath,
+    uploadedBy,
+  };
+
+  const [inserted] = await db
+    .insert(mediaFile)
+    .values({
+      id: nanoid(),
+      ...fileData,
+    })
+    .returning();
+
+  // Build response with URLs
+  return {
+    id: inserted.id,
+    filename: inserted.filename,
+    originalName: inserted.originalName,
+    mimeType: inserted.mimeType,
+    size: inserted.size,
+    width: inserted.width,
+    height: inserted.height,
+    altText: inserted.altText,
+    path: inserted.path,
+    thumbnailPath: inserted.thumbnailPath,
+    url: buildMediaUrl(inserted.path),
+    thumbnailUrl: inserted.thumbnailPath
+      ? buildMediaUrl(inserted.thumbnailPath)
+      : null,
+    uploadedBy: inserted.uploadedBy,
+    createdAt: inserted.createdAt.toISOString(),
+    updatedAt: inserted.updatedAt.toISOString(),
+  };
 }
