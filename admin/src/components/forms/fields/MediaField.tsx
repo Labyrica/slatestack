@@ -1,12 +1,14 @@
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
 import type { Control } from 'react-hook-form'
+import { useQuery } from '@tanstack/react-query'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import type { FieldDefinition } from '@/types/collection'
 import { MediaPickerDialog } from '@/features/media/MediaPickerDialog'
 import type { MediaFile } from '@/types/media'
-import { Image, X } from 'lucide-react'
+import { Image, X, Loader2 } from 'lucide-react'
+import { fetcher } from '@/lib/api'
 
 interface MediaFieldProps {
   field: FieldDefinition
@@ -32,16 +34,33 @@ export function MediaField({ field, control, error }: MediaFieldProps) {
         render={({ field: controllerField }) => {
           const mediaId = controllerField.value
 
+          // Fetch media data when we have a mediaId
+          const { data: media, isLoading } = useQuery({
+            queryKey: ['media', mediaId],
+            queryFn: () => fetcher<MediaFile>(`/admin/media/${mediaId}`),
+            enabled: !!mediaId,
+          })
+
           return (
             <>
               <div className="space-y-2">
                 {mediaId ? (
                   <div className="relative inline-block">
-                    <img
-                      src={`/api/media/${mediaId}/file`}
-                      alt="Selected media"
-                      className="h-32 w-32 rounded-md border border-input object-cover"
-                    />
+                    {isLoading ? (
+                      <div className="flex h-32 w-32 items-center justify-center rounded-md border border-input bg-muted">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : media ? (
+                      <img
+                        src={media.url}
+                        alt={media.altText || 'Selected media'}
+                        className="h-32 w-32 rounded-md border border-input object-cover"
+                      />
+                    ) : (
+                      <div className="flex h-32 w-32 items-center justify-center rounded-md border border-input bg-muted">
+                        <span className="text-sm text-muted-foreground">Not found</span>
+                      </div>
+                    )}
                     <Button
                       type="button"
                       variant="destructive"
