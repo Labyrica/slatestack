@@ -49,8 +49,9 @@ export const ErrorResponseSchema = Type.Object({
 
 /**
  * Query parameters for listing entries
+ * Query params are strings by default, so we use String and parse in the handler
  */
 export const ListEntriesQuerySchema = Type.Object({
-  page: Type.Optional(Type.Number({ minimum: 1, default: 1 })),
-  limit: Type.Optional(Type.Number({ minimum: 1, maximum: 100, default: 20 })),
+  page: Type.Optional(Type.String()),
+  limit: Type.Optional(Type.String()),
 });

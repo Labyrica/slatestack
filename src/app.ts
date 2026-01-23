@@ -7,7 +7,7 @@ import fastifyCookie from "@fastify/cookie";
 import { envSchema } from "./shared/config/index.js";
 import authPlugin from "./plugins/auth.js";
 import { authRoutes, userRoutes } from "./modules/auth/index.js";
-import { collectionRoutes, entryRoutes } from "./modules/content/index.js";
+import { collectionRoutes, entryRoutes, publicContentRoutes } from "./modules/content/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -44,6 +44,9 @@ export async function buildApp() {
 
   // Register entry management routes
   await fastify.register(entryRoutes);
+
+  // Register public content routes (no auth required)
+  await fastify.register(publicContentRoutes);
 
   return fastify;
 }

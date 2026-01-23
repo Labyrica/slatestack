@@ -24,3 +24,4 @@ export * from "./entry.schemas.js";
 // Export routes
 export { entryRoutes } from "./entry.routes.js";
 export { collectionRoutes } from "./collection.routes.js";
+export { publicContentRoutes } from "./public.routes.js";
