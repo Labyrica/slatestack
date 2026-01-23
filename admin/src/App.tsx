@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
-import { LoginPage } from '@/pages/LoginPage'
+import { LoginPage } from '@/features/auth'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { CollectionsPage } from '@/pages/CollectionsPage'
 import { MediaPage } from '@/pages/MediaPage'
