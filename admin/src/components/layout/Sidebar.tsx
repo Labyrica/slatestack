@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, FolderOpen, Image, Users, LogOut } from 'lucide-react'
+import { LayoutDashboard, FolderOpen, Image, Users, LogOut, BarChart3 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSession, signOut } from '@/lib/auth'
 
@@ -13,6 +13,7 @@ export function Sidebar() {
   const navItems = [
     { to: '/', label: 'Dashboard', icon: LayoutDashboard },
     { to: '/collections', label: 'Collections', icon: FolderOpen },
+    { to: '/metrics', label: 'Metrics', icon: BarChart3 },
     { to: '/media', label: 'Media', icon: Image },
   ]
 
