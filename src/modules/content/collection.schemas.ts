@@ -27,7 +27,7 @@ export const FieldDefinitionSchema = Type.Object({
   generateFrom: Type.Optional(Type.String()),
 });
 
-export type FieldDefinition = Static<typeof FieldDefinitionSchema>;
+// Note: FieldDefinition type is defined in content.types.ts
 
 // Create collection schema
 export const CreateCollectionSchema = Type.Object({
