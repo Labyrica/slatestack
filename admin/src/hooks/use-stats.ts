@@ -8,21 +8,35 @@ interface Stats {
   users: number
 }
 
+interface PaginatedResponse<T> {
+  data: T[]
+  meta: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
+}
+
+interface EntryStats {
+  total: number
+}
+
 export function useStats() {
   return useQuery({
     queryKey: ['stats'],
     queryFn: async () => {
-      // Fetch all the data in parallel
-      const [collections, media, users] = await Promise.all([
+      const [collections, media, users, entryStats] = await Promise.all([
         fetcher<Array<{ id: string }>>('/admin/collections'),
-        fetcher<{ items: Array<{ id: string }> }>('/admin/media'),
+        fetcher<PaginatedResponse<{ id: string }>>('/admin/media'),
         fetcher<Array<{ id: string }>>('/admin/users'),
+        fetcher<EntryStats>('/admin/entries/stats'),
       ])
 
       const stats: Stats = {
         collections: collections.length,
-        entries: 0, // TODO: Need a way to get total entries count across all collections
-        media: media.items.length,
+        entries: entryStats.total,
+        media: media.meta.total,
         users: users.length,
       }
 
