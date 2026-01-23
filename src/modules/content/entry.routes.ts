@@ -38,20 +38,24 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
     },
     handler: async (request, reply) => {
       const { collectionId } = request.params;
-      const { q, status, page, limit } = request.query;
+      const { q, status, page: pageStr, limit: limitStr } = request.query;
+
+      // Parse numeric query params
+      const page = pageStr ? parseInt(pageStr, 10) : 1;
+      const limit = limitStr ? parseInt(limitStr, 10) : 20;
 
       // Use searchEntries if query provided, otherwise listEntries
-      const result = q || page || limit
+      const result = q || pageStr || limitStr
         ? await searchEntries(collectionId, { q, status, page, limit })
         : await listEntries(collectionId, status ? { status } : undefined);
 
-      const totalPages = Math.ceil(result.total / (limit ?? 20));
+      const totalPages = Math.ceil(result.total / limit);
 
       return reply.send({
         data: result.entries,
         meta: {
-          page: page ?? 1,
-          limit: limit ?? 20,
+          page,
+          limit,
           total: result.total,
           totalPages,
         },

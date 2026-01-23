@@ -44,14 +44,21 @@ export const ReorderEntriesSchema = Type.Object({
   orderedIds: Type.Array(Type.String()),
 });
 
-// Search and filter schema
+// Search and filter schema for query string (strings from URL)
 export const SearchEntriesQuerySchema = Type.Object({
   q: Type.Optional(Type.String({ minLength: 1 })),  // Search query
   status: Type.Optional(Type.Union([Type.Literal('draft'), Type.Literal('published')])),
-  page: Type.Optional(Type.Number({ minimum: 1, default: 1 })),
-  limit: Type.Optional(Type.Number({ minimum: 1, maximum: 100, default: 20 })),
+  page: Type.Optional(Type.String({ pattern: '^[0-9]+$' })),  // Numeric string
+  limit: Type.Optional(Type.String({ pattern: '^[0-9]+$' })),  // Numeric string
 });
-export type SearchEntriesQuery = Static<typeof SearchEntriesQuerySchema>;
+
+// Search and filter options for service layer (with actual numbers)
+export type SearchEntriesQuery = {
+  q?: string;
+  status?: 'draft' | 'published';
+  page?: number;
+  limit?: number;
+};
 
 // Paginated response schema
 export const PaginatedEntryListSchema = Type.Object({
