@@ -1,5 +1,5 @@
-import { pgTable, text, boolean, timestamp, jsonb, integer, unique } from "drizzle-orm/pg-core";
-import { relations } from "drizzle-orm";
+import { pgTable, text, boolean, timestamp, jsonb, integer, unique, index } from "drizzle-orm/pg-core";
+import { relations, sql } from "drizzle-orm";
 
 export const user = pgTable("user", {
   id: text("id").primaryKey(),
@@ -99,6 +99,10 @@ export const entry = pgTable("entry", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 }, (table) => ({
   uniqueCollectionSlug: unique().on(table.collectionId, table.slug),
+  searchIdx: index("entries_search_idx").using(
+    "gin",
+    sql`to_tsvector('english', ${table.data}::text)`
+  ),
 }));
 
 // Content relations
