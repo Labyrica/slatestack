@@ -43,3 +43,23 @@ export const EntryIdParamSchema = Type.Object({
 export const ReorderEntriesSchema = Type.Object({
   orderedIds: Type.Array(Type.String()),
 });
+
+// Search and filter schema
+export const SearchEntriesQuerySchema = Type.Object({
+  q: Type.Optional(Type.String({ minLength: 1 })),  // Search query
+  status: Type.Optional(Type.Union([Type.Literal('draft'), Type.Literal('published')])),
+  page: Type.Optional(Type.Number({ minimum: 1, default: 1 })),
+  limit: Type.Optional(Type.Number({ minimum: 1, maximum: 100, default: 20 })),
+});
+export type SearchEntriesQuery = Static<typeof SearchEntriesQuerySchema>;
+
+// Paginated response schema
+export const PaginatedEntryListSchema = Type.Object({
+  data: Type.Array(EntryResponseSchema),
+  meta: Type.Object({
+    page: Type.Number(),
+    limit: Type.Number(),
+    total: Type.Number(),
+    totalPages: Type.Number(),
+  }),
+});

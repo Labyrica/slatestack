@@ -9,6 +9,7 @@ import {
   updateEntry,
   deleteEntry,
   reorderEntries,
+  searchEntries,
 } from './entry.service.js';
 import {
   CreateEntrySchema,
@@ -18,28 +19,43 @@ import {
   CollectionIdParamSchema,
   EntryIdParamSchema,
   ReorderEntriesSchema,
+  SearchEntriesQuerySchema,
+  PaginatedEntryListSchema,
 } from './entry.schemas.js';
 
 export const entryRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<TypeBoxTypeProvider>();
 
-  // GET /api/admin/collections/:collectionId/entries - List entries
+  // GET /api/admin/collections/:collectionId/entries - List/search entries
   app.get('/api/admin/collections/:collectionId/entries', {
     preHandler: [requireRole('editor')],
     schema: {
       params: CollectionIdParamSchema,
-      querystring: Type.Object({
-        status: Type.Optional(Type.Union([Type.Literal('draft'), Type.Literal('published')])),
-      }),
+      querystring: SearchEntriesQuerySchema,
       response: {
-        200: EntryListResponseSchema,
+        200: PaginatedEntryListSchema,
       },
     },
     handler: async (request, reply) => {
       const { collectionId } = request.params;
-      const { status } = request.query;
-      const entries = await listEntries(collectionId, status ? { status } : undefined);
-      return reply.send(entries);
+      const { q, status, page, limit } = request.query;
+
+      // Use searchEntries if query provided, otherwise listEntries
+      const result = q || page || limit
+        ? await searchEntries(collectionId, { q, status, page, limit })
+        : await listEntries(collectionId, status ? { status } : undefined);
+
+      const totalPages = Math.ceil(result.total / (limit ?? 20));
+
+      return reply.send({
+        data: result.entries,
+        meta: {
+          page: page ?? 1,
+          limit: limit ?? 20,
+          total: result.total,
+          totalPages,
+        },
+      });
     },
   });
 
