@@ -14,6 +14,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['"Space Grotesk"', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -50,9 +53,10 @@ export default {
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "4px",      /* Arsenal radius-lg */
+        md: "3px",      /* Arsenal radius-md */
+        sm: "2px",      /* Arsenal radius-sm */
+        card: "16px",   /* Arsenal card radius */
       },
       keyframes: {
         "accordion-down": {
