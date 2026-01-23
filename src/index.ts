@@ -1,7 +1,12 @@
+import "dotenv/config";
 import { buildApp } from "./app.js";
+import { seedAdminUser } from "./shared/database/seed.js";
 
 async function main() {
   const app = await buildApp();
+
+  // Seed admin user if needed
+  await seedAdminUser();
 
   try {
     await app.listen({
