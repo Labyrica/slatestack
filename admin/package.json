@@ -12,6 +12,9 @@
   "dependencies": {
     "@tanstack/react-query": "^5.90.20",
     "@tanstack/react-query-devtools": "^5.91.2",
+    "@tiptap/extension-placeholder": "^3.17.0",
+    "@tiptap/react": "^3.17.0",
+    "@tiptap/starter-kit": "^3.17.0",
     "autoprefixer": "^10.4.23",
     "better-auth": "^1.4.17",
     "class-variance-authority": "^0.7.1",
