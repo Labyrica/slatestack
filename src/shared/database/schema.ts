@@ -143,3 +143,14 @@ export const mediaFileRelations = relations(mediaFile, ({ one }) => ({
     references: [user.id],
   }),
 }));
+
+// Metrics table
+export const pageview = pgTable("pageview", {
+  id: text("id").primaryKey(),
+  path: text("path").notNull(),
+  referrerDomain: text("referrer_domain"),
+  visitorHash: text("visitor_hash").notNull(),
+  createdAt: timestamp("createdAt", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  timePathIdx: index("pageview_time_path_idx").on(table.createdAt.desc(), table.path),
+}));
