@@ -5,6 +5,8 @@ import fastifyEnv from "@fastify/env";
 import fastifyCors from "@fastify/cors";
 import fastifyCookie from "@fastify/cookie";
 import { envSchema } from "./shared/config/index.js";
+import authPlugin from "./plugins/auth.js";
+import { authRoutes } from "./modules/auth/index.js";
 
 export async function buildApp() {
   const fastify = Fastify({
@@ -26,6 +28,12 @@ export async function buildApp() {
 
   // Register cookie support
   await fastify.register(fastifyCookie);
+
+  // Register auth plugin
+  await fastify.register(authPlugin);
+
+  // Register auth routes
+  await fastify.register(authRoutes);
 
   return fastify;
 }
