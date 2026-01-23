@@ -1,11 +1,12 @@
 import { nanoid } from 'nanoid';
 import { db } from '../../shared/database/index.js';
 import { entry } from '../../shared/database/schema.js';
-import { eq, and, desc, asc } from 'drizzle-orm';
+import { eq, and, desc, asc, count, sql } from 'drizzle-orm';
 import { validateEntryData } from './content.validation.js';
 import { getCollection } from './collection.service.js';
 import { generateSlug, ensureUniqueSlug } from './slug.utils.js';
-import { CreateEntryInput, UpdateEntryInput, EntryResponse } from './entry.schemas.js';
+import { CreateEntryInput, UpdateEntryInput, EntryResponse, SearchEntriesQuery } from './entry.schemas.js';
+import { PublicEntry } from './public.schemas.js';
 
 /**
  * Create a new entry in a collection
@@ -114,19 +115,38 @@ export async function getEntry(
  */
 export async function listEntries(
   collectionId: string,
-  options?: { status?: 'draft' | 'published' }
-): Promise<EntryResponse[]> {
+  options?: {
+    status?: 'draft' | 'published';
+    page?: number;
+    limit?: number;
+  }
+): Promise<{ entries: EntryResponse[]; total: number }> {
+  const page = options?.page ?? 1;
+  const limit = options?.limit ?? 20;
+  const offset = (page - 1) * limit;
+
   const conditions = options?.status
     ? and(eq(entry.collectionId, collectionId), eq(entry.status, options.status))
     : eq(entry.collectionId, collectionId);
 
+  // Query entries with pagination
   const results = await db
     .select()
     .from(entry)
     .where(conditions)
-    .orderBy(asc(entry.position), desc(entry.createdAt));
+    .orderBy(asc(entry.position), desc(entry.createdAt))
+    .limit(limit)
+    .offset(offset);
 
-  return results.map((e) => ({
+  // Count total entries
+  const [countResult] = await db
+    .select({ count: count() })
+    .from(entry)
+    .where(conditions);
+
+  const total = countResult.count;
+
+  const entries = results.map((e) => ({
     id: e.id,
     collectionId: e.collectionId,
     slug: e.slug,
@@ -136,6 +156,67 @@ export async function listEntries(
     createdAt: e.createdAt.toISOString(),
     updatedAt: e.updatedAt.toISOString(),
   }));
+
+  return { entries, total };
+}
+
+/**
+ * Search entries in a collection with full-text search and filtering
+ */
+export async function searchEntries(
+  collectionId: string,
+  options: SearchEntriesQuery
+): Promise<{ entries: EntryResponse[]; total: number }> {
+  const page = options.page ?? 1;
+  const limit = options.limit ?? 20;
+  const offset = (page - 1) * limit;
+
+  // Build base conditions
+  const conditions = [eq(entry.collectionId, collectionId)];
+
+  // Add full-text search condition if query provided
+  if (options.q) {
+    conditions.push(
+      sql`to_tsvector('english', ${entry.data}::text) @@ plainto_tsquery('english', ${options.q})`
+    );
+  }
+
+  // Add status filter if provided
+  if (options.status) {
+    conditions.push(eq(entry.status, options.status));
+  }
+
+  const whereClause = and(...conditions);
+
+  // Query entries with pagination
+  const results = await db
+    .select()
+    .from(entry)
+    .where(whereClause)
+    .orderBy(asc(entry.position), desc(entry.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  // Count total matching entries
+  const [countResult] = await db
+    .select({ count: count() })
+    .from(entry)
+    .where(whereClause);
+
+  const total = countResult.count;
+
+  const entries = results.map((e) => ({
+    id: e.id,
+    collectionId: e.collectionId,
+    slug: e.slug,
+    data: e.data as Record<string, unknown>,
+    status: e.status as 'draft' | 'published',
+    position: e.position,
+    createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
+  }));
+
+  return { entries, total };
 }
 
 /**
@@ -277,4 +358,88 @@ export async function reorderEntries(
       .set({ position: i, updatedAt: new Date() })
       .where(and(eq(entry.id, orderedIds[i]), eq(entry.collectionId, collectionId)));
   }
+}
+
+/**
+ * List published entries for public API
+ */
+export async function listPublishedEntries(
+  collectionSlug: string,
+  options: { page?: number; limit?: number } = {}
+): Promise<{ entries: PublicEntry[]; total: number }> {
+  // Get collection by slug
+  const coll = await getCollection(collectionSlug);
+  if (!coll) {
+    throw new Error('Collection not found');
+  }
+
+  const page = options.page ?? 1;
+  const limit = options.limit ?? 20;
+  const offset = (page - 1) * limit;
+
+  // Query published entries with pagination
+  const results = await db
+    .select()
+    .from(entry)
+    .where(and(eq(entry.collectionId, coll.id), eq(entry.status, 'published')))
+    .orderBy(asc(entry.position), desc(entry.createdAt))
+    .limit(limit)
+    .offset(offset);
+
+  // Count total published entries
+  const [countResult] = await db
+    .select({ count: count() })
+    .from(entry)
+    .where(and(eq(entry.collectionId, coll.id), eq(entry.status, 'published')));
+
+  const total = countResult.count;
+
+  // Map to public format
+  const entries: PublicEntry[] = results.map((e) => ({
+    slug: e.slug,
+    data: e.data as Record<string, unknown>,
+    createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
+  }));
+
+  return { entries, total };
+}
+
+/**
+ * Get a single published entry for public API
+ */
+export async function getPublishedEntry(
+  collectionSlug: string,
+  entrySlug: string
+): Promise<PublicEntry | null> {
+  // Get collection by slug
+  const coll = await getCollection(collectionSlug);
+  if (!coll) {
+    throw new Error('Collection not found');
+  }
+
+  // Find published entry by slug
+  const result = await db
+    .select()
+    .from(entry)
+    .where(
+      and(
+        eq(entry.collectionId, coll.id),
+        eq(entry.slug, entrySlug),
+        eq(entry.status, 'published')
+      )
+    )
+    .limit(1);
+
+  if (result.length === 0) {
+    return null;
+  }
+
+  const e = result[0];
+  return {
+    slug: e.slug,
+    data: e.data as Record<string, unknown>,
+    createdAt: e.createdAt.toISOString(),
+    updatedAt: e.updatedAt.toISOString(),
+  };
 }
