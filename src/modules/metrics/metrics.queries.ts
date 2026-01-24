@@ -106,3 +106,51 @@ export async function getTopPages(params?: {
     views: r.views,
   }));
 }
+
+/**
+ * Get pageview trend data grouped by day
+ */
+export async function getMetricsTrend(
+  days: number = 7
+): Promise<Array<{ date: string; views: number }>> {
+  const daysAgo = new Date();
+  daysAgo.setDate(daysAgo.getDate() - days);
+
+  const dayTrunc = sql<string>`date_trunc('day', ${pageview.createdAt})`;
+
+  const trendData = await db
+    .select({
+      day: dayTrunc,
+      count: count(),
+    })
+    .from(pageview)
+    .where(gte(pageview.createdAt, daysAgo))
+    .groupBy(dayTrunc)
+    .orderBy(dayTrunc);
+
+  // Fill in missing days with 0 counts and format dates
+  const result: Array<{ date: string; views: number }> = [];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  for (let i = days - 1; i >= 0; i--) {
+    const targetDate = new Date();
+    targetDate.setDate(targetDate.getDate() - i);
+    targetDate.setUTCHours(0, 0, 0, 0);
+    const targetDateStr = targetDate.toISOString().split('T')[0];
+
+    const dayData = trendData.find(d => {
+      const dayStr = new Date(d.day).toISOString().split('T')[0];
+      return dayStr === targetDateStr;
+    });
+
+    // Format as "Jan 15" style
+    const formattedDate = `${months[targetDate.getUTCMonth()]} ${targetDate.getUTCDate()}`;
+
+    result.push({
+      date: formattedDate,
+      views: dayData?.count ?? 0,
+    });
+  }
+
+  return result;
+}

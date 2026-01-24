@@ -32,3 +32,25 @@ export const TopPagesResponseSchema = Type.Object({
 });
 
 export type TopPagesResponse = Static<typeof TopPagesResponseSchema>;
+
+// Trend Query Parameters
+export const TrendQuerySchema = Type.Object({
+  days: Type.Optional(Type.String({ pattern: '^[0-9]+$' })),
+});
+
+export type TrendQuery = Static<typeof TrendQuerySchema>;
+
+// Trend Data Point Schema
+export const TrendDataPointSchema = Type.Object({
+  date: Type.String(),
+  views: Type.Number(),
+});
+
+export type TrendDataPoint = Static<typeof TrendDataPointSchema>;
+
+// Trend Response
+export const TrendResponseSchema = Type.Object({
+  data: Type.Array(TrendDataPointSchema),
+});
+
+export type TrendResponse = Static<typeof TrendResponseSchema>;

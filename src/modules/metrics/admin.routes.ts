@@ -1,11 +1,14 @@
 import { FastifyPluginAsync } from "fastify";
 import { requireRole } from "../auth/auth.service.js";
-import { getMetricsSummary, getTopPages } from "./metrics.queries.js";
+import { getMetricsSummary, getTopPages, getMetricsTrend } from "./metrics.queries.js";
 import {
   MetricsSummarySchema,
   TopPagesQuerySchema,
   TopPagesResponseSchema,
   TopPagesQuery,
+  TrendQuerySchema,
+  TrendResponseSchema,
+  TrendQuery,
 } from "./admin.schemas.js";
 
 export const metricsAdminRoutes: FastifyPluginAsync = async (fastify) => {
@@ -51,6 +54,27 @@ export const metricsAdminRoutes: FastifyPluginAsync = async (fastify) => {
       });
 
       return reply.send({ data: topPages });
+    }
+  );
+
+  // GET /api/admin/metrics/trend - Get pageview trend over time
+  fastify.get(
+    "/api/admin/metrics/trend",
+    {
+      preHandler: [requireRole("editor")],
+      schema: {
+        querystring: TrendQuerySchema,
+        response: {
+          200: TrendResponseSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const query = request.query as TrendQuery;
+      const days = query.days ? parseInt(query.days, 10) : 7;
+
+      const trend = await getMetricsTrend(days);
+      return reply.send({ data: trend });
     }
   );
 };
