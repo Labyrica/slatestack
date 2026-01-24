@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, FolderOpen, Image, Users, LogOut, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, FolderOpen, Image, Users, LogOut, BarChart3, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useSession, signOut } from '@/lib/auth'
 
@@ -15,6 +15,7 @@ export function Sidebar() {
     { to: '/collections', label: 'Collections', icon: FolderOpen },
     { to: '/metrics', label: 'Metrics', icon: BarChart3 },
     { to: '/media', label: 'Media', icon: Image },
+    { to: '/settings', label: 'Settings', icon: Settings },
   ]
 
   // Only show Users link if user is admin
