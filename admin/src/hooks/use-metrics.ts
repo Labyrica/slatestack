@@ -17,6 +17,15 @@ interface TopPagesResponse {
   data: TopPage[]
 }
 
+interface TrendDataPoint {
+  date: string
+  views: number
+}
+
+interface TrendResponse {
+  data: TrendDataPoint[]
+}
+
 export function useMetricsSummary() {
   return useQuery({
     queryKey: ['metrics', 'summary'],
@@ -35,5 +44,18 @@ export function useTopPages(options: UseTopPagesOptions = {}) {
   return useQuery({
     queryKey: ['metrics', 'top-pages', days, limit],
     queryFn: () => fetcher<TopPagesResponse>(`/admin/metrics/top-pages?days=${days}&limit=${limit}`),
+  })
+}
+
+interface UseMetricsTrendOptions {
+  days?: number
+}
+
+export function useMetricsTrend(options: UseMetricsTrendOptions = {}) {
+  const { days = 7 } = options
+
+  return useQuery({
+    queryKey: ['metrics', 'trend', days],
+    queryFn: () => fetcher<TrendResponse>(`/admin/metrics/trend?days=${days}`),
   })
 }
