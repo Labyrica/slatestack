@@ -4,13 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table } from '@/components/ui/table'
 import { Select } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
-import { useMetricsSummary, useTopPages } from '@/hooks/use-metrics'
+import { useMetricsSummary, useTopPages, useMetricsTrend } from '@/hooks/use-metrics'
 import { TrendingUp, BarChart3 } from 'lucide-react'
+import { PageviewsChart } from './PageviewsChart'
+import { TopPagesChart } from './TopPagesChart'
 
 export function MetricsPage() {
   const [days, setDays] = useState(7)
   const { data: summary, isLoading: summaryLoading } = useMetricsSummary()
   const { data: topPages, isLoading: topPagesLoading } = useTopPages({ days, limit: 20 })
+  const { data: trendData, isLoading: trendLoading } = useMetricsTrend({ days })
 
   return (
     <Shell title="Metrics">
@@ -97,18 +100,21 @@ export function MetricsPage() {
           </Card>
         </div>
 
-        {/* Top Pages Section */}
-        <div className="mt-8">
+        {/* Pageviews Trend Chart */}
+        <div
+          className="mt-8 opacity-0 animate-slide-up"
+          style={{ animationDelay: '120ms', animationFillMode: 'forwards' }}
+        >
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Top Pages</CardTitle>
+                <CardTitle>Pageviews Trend</CardTitle>
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="days-filter" className="text-sm">
+                  <Label htmlFor="trend-filter" className="text-sm">
                     Time period:
                   </Label>
                   <Select
-                    id="days-filter"
+                    id="trend-filter"
                     value={days.toString()}
                     onChange={(e) => setDays(Number(e.target.value))}
                     className="w-32"
@@ -121,6 +127,33 @@ export function MetricsPage() {
               </div>
             </CardHeader>
             <CardContent>
+              <PageviewsChart
+                data={trendData?.data ?? []}
+                isLoading={trendLoading}
+              />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Top Pages Section */}
+        <div
+          className="mt-8 opacity-0 animate-slide-up"
+          style={{ animationDelay: '240ms', animationFillMode: 'forwards' }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Pages</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {/* Chart visualization */}
+              <div className="mb-6">
+                <TopPagesChart
+                  data={topPages?.data ?? []}
+                  isLoading={topPagesLoading}
+                />
+              </div>
+
+              {/* Detailed table */}
               {topPagesLoading ? (
                 <div className="space-y-2">
                   {[...Array(5)].map((_, i) => (
