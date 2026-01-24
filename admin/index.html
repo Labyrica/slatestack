@@ -5,9 +5,30 @@
     <!-- FOUC Prevention: Apply theme class before React loads -->
     <script>
       (function() {
-        var theme = localStorage.getItem('slatestack-theme');
+        // Try to read zustand store preference first
+        var storeData = localStorage.getItem('slatestack-theme-store');
+        var preference = null;
+        if (storeData) {
+          try {
+            var parsed = JSON.parse(storeData);
+            preference = parsed.state && parsed.state.preference;
+          } catch(e) {}
+        }
+
+        // Fallback to simple theme key (legacy or set by store for quick access)
+        var simpleTheme = localStorage.getItem('slatestack-theme');
+
+        // Detect system preference
         var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        if (theme === 'dark' || (!theme && prefersDark)) {
+
+        // Determine if dark theme should be applied
+        // Priority: explicit preference > simple key > system preference
+        var isDark = preference === 'dark' ||
+                     (preference === 'system' && prefersDark) ||
+                     (!preference && simpleTheme === 'dark') ||
+                     (!preference && !simpleTheme && prefersDark);
+
+        if (isDark) {
           document.documentElement.classList.add('dark');
         }
       })();
