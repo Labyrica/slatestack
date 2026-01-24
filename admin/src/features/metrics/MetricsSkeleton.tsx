@@ -1,13 +1,18 @@
+import type { CSSProperties } from 'react'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 
 interface MetricsCardSkeletonProps {
   className?: string
+  style?: CSSProperties
 }
 
-export function MetricsCardSkeleton({ className }: MetricsCardSkeletonProps) {
+export function MetricsCardSkeleton({ className, style }: MetricsCardSkeletonProps) {
   return (
-    <Card className={cn('opacity-0 animate-slide-up', className)}>
+    <Card
+      className={cn('opacity-0 animate-slide-up', className)}
+      style={{ animationFillMode: 'forwards', ...style }}
+    >
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="h-4 w-20 animate-pulse rounded bg-muted" />
         <div className="h-4 w-4 animate-pulse rounded bg-muted" />
