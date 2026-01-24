@@ -21,7 +21,7 @@ export function MediaGrid({ files, onEdit, onDelete, onCrop, onSelect, selectedI
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-      {files.map((file) => (
+      {files.map((file, index) => (
         <MediaCard
           key={file.id}
           media={file}
@@ -30,6 +30,8 @@ export function MediaGrid({ files, onEdit, onDelete, onCrop, onSelect, selectedI
           onCrop={onCrop ? () => onCrop(file) : undefined}
           onSelect={onSelect ? () => onSelect(file) : undefined}
           selected={selectedId === file.id}
+          className="animate-slide-up opacity-0"
+          style={{ animationDelay: `${300 + index * 80}ms` }}
         />
       ))}
     </div>

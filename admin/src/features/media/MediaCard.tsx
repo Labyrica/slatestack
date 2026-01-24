@@ -5,6 +5,8 @@ import type { MediaFile } from '@/types/media'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
 
+import type { CSSProperties } from 'react'
+
 interface MediaCardProps {
   media: MediaFile
   onEdit: () => void
@@ -12,9 +14,11 @@ interface MediaCardProps {
   onCrop?: () => void
   onSelect?: () => void
   selected?: boolean
+  className?: string
+  style?: CSSProperties
 }
 
-export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected }: MediaCardProps) {
+export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected, className, style }: MediaCardProps) {
   const [menuOpen, setMenuOpen] = useState(false)
   const isImage = media.mimeType.startsWith('image/')
 
@@ -43,8 +47,10 @@ export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected 
     <Card
       className={cn(
         'group relative overflow-hidden cursor-pointer transition-all hover:shadow-md',
-        selected && 'ring-2 ring-primary'
+        selected && 'ring-2 ring-primary',
+        className
       )}
+      style={style}
       onClick={handleClick}
     >
       <div className="aspect-square flex items-center justify-center bg-muted relative">
