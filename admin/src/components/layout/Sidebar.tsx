@@ -24,9 +24,9 @@ export function Sidebar() {
   }
 
   return (
-    <div className="flex h-screen w-60 flex-col border-r border-white/15 bg-black">
+    <div className="flex h-screen w-60 flex-col border-r border-border bg-background">
       <div className="p-6">
-        <h1 className="text-2xl font-bold tracking-tight text-white">Slatestack</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">Slatestack</h1>
       </div>
 
       <nav className="flex-1 space-y-1 px-3">
@@ -41,8 +41,8 @@ export function Sidebar() {
                   "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-[3px]",
                   "transition-all duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)]",
                   isActive
-                    ? "bg-white/5 text-white border-b border-white"
-                    : "text-white/60 hover:text-white hover:bg-white/[0.02] hover:scale-105"
+                    ? "bg-muted text-foreground border-b border-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/20 hover:scale-105"
                 ].join(" ")
               }
             >
@@ -53,10 +53,10 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="border-t border-white/15 p-3">
+      <div className="border-t border-border p-3">
         <Button
           variant="ghost"
-          className="w-full justify-start gap-3 text-white/60 hover:text-white hover:bg-white/[0.02] hover:scale-105 transition-all duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
+          className="w-full justify-start gap-3 text-muted-foreground hover:text-foreground hover:bg-muted/20 hover:scale-105 transition-all duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
           onClick={handleLogout}
         >
           <LogOut className="h-5 w-5" />
