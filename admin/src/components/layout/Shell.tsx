@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
 import { Sidebar } from './Sidebar'
 import { Header } from './Header'
-import { useTheme } from '@/hooks/use-theme'
 
 interface ShellProps {
   children: ReactNode
@@ -9,8 +8,6 @@ interface ShellProps {
 }
 
 export function Shell({ children, title }: ShellProps) {
-  useTheme() // Apply theme to document
-
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
