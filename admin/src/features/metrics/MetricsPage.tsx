@@ -2,18 +2,58 @@ import { useState } from 'react'
 import { Shell } from '@/components/layout/Shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table } from '@/components/ui/table'
-import { Select } from '@/components/ui/select'
-import { Label } from '@/components/ui/label'
 import { useMetricsSummary, useTopPages, useMetricsTrend } from '@/hooks/use-metrics'
-import { TrendingUp, BarChart3 } from 'lucide-react'
+import { TrendingUp, BarChart3, Calendar, Activity } from 'lucide-react'
 import { PageviewsChart } from './PageviewsChart'
 import { TopPagesChart } from './TopPagesChart'
+import { DateRangeSelector } from './DateRangeSelector'
+import { MetricsCard } from './MetricsCard'
+import { MetricsCardSkeleton, TableSkeleton } from './MetricsSkeleton'
+import { EmptyState } from './EmptyState'
 
 export function MetricsPage() {
   const [days, setDays] = useState(7)
   const { data: summary, isLoading: summaryLoading } = useMetricsSummary()
   const { data: topPages, isLoading: topPagesLoading } = useTopPages({ days, limit: 20 })
   const { data: trendData, isLoading: trendLoading } = useMetricsTrend({ days })
+
+  // Calculate trend values for comparison
+  // Using trend data: compare first half vs second half of the period
+  const calculatePreviousValue = (trendArray: number[] | undefined) => {
+    if (!trendArray || trendArray.length < 2) return undefined
+    const midpoint = Math.floor(trendArray.length / 2)
+    const olderSum = trendArray.slice(midpoint).reduce((a, b) => a + b, 0)
+    return olderSum > 0 ? olderSum : undefined
+  }
+
+  // Card configurations
+  const cards = [
+    {
+      title: 'Total',
+      value: summary?.total ?? 0,
+      subtitle: 'All time views',
+      icon: <BarChart3 className="h-4 w-4" />,
+    },
+    {
+      title: 'Today',
+      value: summary?.today ?? 0,
+      subtitle: 'Views today',
+      icon: <Activity className="h-4 w-4" />,
+    },
+    {
+      title: 'Last 7 Days',
+      value: summary?.last7Days ?? 0,
+      subtitle: 'Views in last 7 days',
+      icon: <TrendingUp className="h-4 w-4" />,
+      previousValue: calculatePreviousValue(summary?.trend),
+    },
+    {
+      title: 'Last 30 Days',
+      value: summary?.trend.reduce((sum, val) => sum + val, 0) ?? 0,
+      subtitle: 'Approximate from trend',
+      icon: <Calendar className="h-4 w-4" />,
+    },
+  ]
 
   return (
     <Shell title="Metrics">
@@ -25,79 +65,33 @@ export function MetricsPage() {
               Pageview statistics for your content
             </p>
           </div>
+          <DateRangeSelector value={days} onChange={setDays} />
         </div>
 
         {/* Summary Cards */}
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total</CardTitle>
-              <BarChart3 className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {summaryLoading ? (
-                <div className="h-8 w-20 animate-pulse rounded bg-muted" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {summary?.total.toLocaleString() ?? 0}
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">All time views</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Today</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {summaryLoading ? (
-                <div className="h-8 w-20 animate-pulse rounded bg-muted" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {summary?.today.toLocaleString() ?? 0}
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">Views today</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Last 7 Days</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {summaryLoading ? (
-                <div className="h-8 w-20 animate-pulse rounded bg-muted" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {summary?.last7Days.toLocaleString() ?? 0}
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">Views in last 7 days</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Last 30 Days</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              {summaryLoading ? (
-                <div className="h-8 w-20 animate-pulse rounded bg-muted" />
-              ) : (
-                <div className="text-2xl font-bold">
-                  {summary?.trend.reduce((sum, val) => sum + val, 0).toLocaleString() ?? 0}
-                </div>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">
-                Approximate from trend data
-              </p>
-            </CardContent>
-          </Card>
+          {summaryLoading ? (
+            <>
+              {[0, 1, 2, 3].map((i) => (
+                <MetricsCardSkeleton
+                  key={i}
+                  style={{ animationDelay: `${i * 100}ms` }}
+                />
+              ))}
+            </>
+          ) : (
+            cards.map((card, index) => (
+              <MetricsCard
+                key={card.title}
+                title={card.title}
+                value={card.value}
+                subtitle={card.subtitle}
+                icon={card.icon}
+                previousValue={card.previousValue}
+                style={{ animationDelay: `${index * 100}ms` }}
+              />
+            ))
+          )}
         </div>
 
         {/* Pageviews Trend Chart */}
@@ -107,30 +101,20 @@ export function MetricsPage() {
         >
           <Card>
             <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Pageviews Trend</CardTitle>
-                <div className="flex items-center gap-2">
-                  <Label htmlFor="trend-filter" className="text-sm">
-                    Time period:
-                  </Label>
-                  <Select
-                    id="trend-filter"
-                    value={days.toString()}
-                    onChange={(e) => setDays(Number(e.target.value))}
-                    className="w-32"
-                  >
-                    <option value="7">Last 7 days</option>
-                    <option value="30">Last 30 days</option>
-                    <option value="90">Last 90 days</option>
-                  </Select>
-                </div>
-              </div>
+              <CardTitle>Pageviews Trend</CardTitle>
             </CardHeader>
             <CardContent>
-              <PageviewsChart
-                data={trendData?.data ?? []}
-                isLoading={trendLoading}
-              />
+              {!trendLoading && (!trendData?.data || trendData.data.length === 0) ? (
+                <EmptyState
+                  title="No trend data yet"
+                  description="Pageview trends will appear here once you have visitor data."
+                />
+              ) : (
+                <PageviewsChart
+                  data={trendData?.data ?? []}
+                  isLoading={trendLoading}
+                />
+              )}
             </CardContent>
           </Card>
         </div>
@@ -147,19 +131,22 @@ export function MetricsPage() {
             <CardContent>
               {/* Chart visualization */}
               <div className="mb-6">
-                <TopPagesChart
-                  data={topPages?.data ?? []}
-                  isLoading={topPagesLoading}
-                />
+                {!topPagesLoading && (!topPages?.data || topPages.data.length === 0) ? (
+                  <EmptyState
+                    title="No page data yet"
+                    description="Top pages will appear here once visitors access your content."
+                  />
+                ) : (
+                  <TopPagesChart
+                    data={topPages?.data ?? []}
+                    isLoading={topPagesLoading}
+                  />
+                )}
               </div>
 
               {/* Detailed table */}
               {topPagesLoading ? (
-                <div className="space-y-2">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="h-12 animate-pulse rounded bg-muted" />
-                  ))}
-                </div>
+                <TableSkeleton rows={5} />
               ) : topPages?.data && topPages.data.length > 0 ? (
                 <div className="rounded-md border">
                   <Table>
@@ -193,15 +180,7 @@ export function MetricsPage() {
                     </tbody>
                   </Table>
                 </div>
-              ) : (
-                <div className="py-12 text-center">
-                  <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <h3 className="mt-4 text-sm font-semibold">No pageviews recorded yet</h3>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Pageviews will appear here once visitors access your content.
-                  </p>
-                </div>
-              )}
+              ) : null}
             </CardContent>
           </Card>
         </div>
