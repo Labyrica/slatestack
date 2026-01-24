@@ -4,6 +4,13 @@ import { MetricsCard } from './MetricsCard'
 import { useStats } from '@/hooks/use-stats'
 import { FolderOpen, FileText, Image, Users } from 'lucide-react'
 
+const statCards = [
+  { title: 'Collections', icon: FolderOpen, key: 'collections' as const },
+  { title: 'Entries', icon: FileText, key: 'entries' as const },
+  { title: 'Media Files', icon: Image, key: 'media' as const },
+  { title: 'Users', icon: Users, key: 'users' as const },
+]
+
 export function DashboardPage() {
   const { data: stats, isLoading } = useStats()
 
@@ -16,30 +23,17 @@ export function DashboardPage() {
         </p>
 
         <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <StatsCard
-            title="Collections"
-            value={stats?.collections ?? 0}
-            icon={FolderOpen}
-            isLoading={isLoading}
-          />
-          <StatsCard
-            title="Entries"
-            value={stats?.entries ?? 0}
-            icon={FileText}
-            isLoading={isLoading}
-          />
-          <StatsCard
-            title="Media Files"
-            value={stats?.media ?? 0}
-            icon={Image}
-            isLoading={isLoading}
-          />
-          <StatsCard
-            title="Users"
-            value={stats?.users ?? 0}
-            icon={Users}
-            isLoading={isLoading}
-          />
+          {statCards.map((card, index) => (
+            <StatsCard
+              key={card.title}
+              title={card.title}
+              value={stats?.[card.key] ?? 0}
+              icon={card.icon}
+              isLoading={isLoading}
+              className="animate-slide-up opacity-0"
+              style={{ animationDelay: `${500 + index * 120}ms` }}
+            />
+          ))}
         </div>
 
         {/* Metrics card with trend visualization */}
