@@ -41,11 +41,11 @@ export function SettingsPage() {
               className="animate-slide-up opacity-0"
               style={{ animationDelay: '740ms' }}
             >
-              <div className="rounded-[16px] border border-white/15 bg-card p-5">
+              <div className="rounded-[16px] border border-border bg-card p-5">
                 <p className="text-sm text-muted-foreground">
                   Dark mode (always on)
                 </p>
-                <p className="mt-1 text-xs text-white/40">
+                <p className="mt-1 text-xs text-muted-foreground">
                   Arsenal design system uses dark mode exclusively
                 </p>
               </div>
