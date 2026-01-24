@@ -12,10 +12,10 @@ const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground uppercase tracking-[0.08em] hover:scale-105 hover:opacity-90 active:scale-[0.98]",
         outline:
-          "border-2 border-white/20 bg-transparent text-foreground uppercase tracking-[0.08em] hover:scale-105 hover:border-white active:scale-[0.98]",
+          "border-2 border-border bg-transparent text-foreground uppercase tracking-[0.08em] hover:scale-105 hover:border-foreground active:scale-[0.98]",
         secondary:
           "bg-secondary text-secondary-foreground uppercase tracking-[0.08em] hover:scale-105 hover:bg-secondary/80 active:scale-[0.98]",
-        ghost: "hover:bg-white/5 hover:text-foreground",
+        ghost: "hover:bg-muted hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

@@ -23,7 +23,7 @@ export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
-        className="fixed inset-0 bg-black/50"
+        className="fixed inset-0 bg-background/50"
         onClick={() => onOpenChange?.(false)}
       />
       <div className="relative z-50 max-w-md w-full mx-4 rounded-lg bg-background p-6 shadow-lg">
