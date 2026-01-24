@@ -8,6 +8,7 @@ import { EntriesPage } from '@/features/entries'
 import { MediaPage } from '@/features/media'
 import { MetricsPage } from '@/features/metrics'
 import { UsersPage } from '@/features/users'
+import { SettingsPage } from '@/features/settings'
 
 const router = createBrowserRouter(
   [
@@ -38,6 +39,10 @@ const router = createBrowserRouter(
         {
           path: 'metrics',
           element: <MetricsPage />,
+        },
+        {
+          path: 'settings',
+          element: <SettingsPage />,
         },
         {
           path: 'users',
