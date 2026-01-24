@@ -21,8 +21,8 @@ export function Badge({ children, variant = 'default', color, className }: Badge
         hashColor
           ? `${hashColor.bg} ${hashColor.text} ${hashColor.border} border`
           : {
-              // Default - white on dark
-              'bg-white/10 text-white border border-white/20': variant === 'default',
+              // Default - muted on dark
+              'bg-muted text-foreground border border-border': variant === 'default',
               // Success - green
               'bg-green-500/20 text-green-400 border border-green-500/30': variant === 'success',
               // Warning - orange
@@ -30,7 +30,7 @@ export function Badge({ children, variant = 'default', color, className }: Badge
               // Destructive - red
               'bg-red-500/20 text-red-400 border border-red-500/30': variant === 'destructive',
               // Secondary - subtle gray
-              'bg-white/5 text-white/60 border border-white/10': variant === 'secondary',
+              'bg-muted/50 text-muted-foreground border border-border/60': variant === 'secondary',
               // Accent - blue (Arsenal primary accent)
               'bg-blue-500/20 text-blue-400 border border-blue-500/30': variant === 'accent',
             },
