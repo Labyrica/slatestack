@@ -4,26 +4,41 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Arsenal Base Colors - Light Theme */
+    --background: 0 0% 100%;              /* Pure white #FFFFFF */
+    --foreground: 0 0% 0%;                /* Pure black #000000 */
+
+    /* Surface Colors */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 0 0% 0%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+    --popover-foreground: 0 0% 0%;
+
+    /* Interactive Colors */
+    --primary: 0 0% 0%;                   /* Black buttons */
+    --primary-foreground: 0 0% 100%;      /* White text on black */
+    --secondary: 0 0% 96%;                /* Subtle gray for secondary */
+    --secondary-foreground: 0 0% 0%;
+
+    /* Muted Colors */
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;         /* 40% black for muted text */
+
+    /* Accent (Arsenal blue) */
+    --accent: 217 91% 60%;                /* #3B82F6 */
+    --accent-foreground: 0 0% 100%;
+
+    /* Destructive (Arsenal red) */
+    --destructive: 0 84% 60%;             /* #EF4444 */
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders - 15% black opacity */
+    --border: 0 0% 0% / 0.15;
+    --input: 0 0% 0% / 0.15;
+    --ring: 0 0% 0%;
+
+    /* Radius - Arsenal minimal */
+    --radius: 3px;
   }
 
   .dark {
@@ -85,14 +100,23 @@
     letter-spacing: 0.08em;
   }
 
-  /* Arsenal text opacity utilities */
+  /* Arsenal text opacity utilities - theme aware */
   .text-secondary {
-    color: hsl(0 0% 100% / 0.85);
+    color: hsl(0 0% 0% / 0.85);
   }
   .text-tertiary {
-    color: hsl(0 0% 100% / 0.6);
+    color: hsl(0 0% 0% / 0.6);
   }
   .text-muted-arsenal {
+    color: hsl(0 0% 0% / 0.45);
+  }
+  .dark .text-secondary {
+    color: hsl(0 0% 100% / 0.85);
+  }
+  .dark .text-tertiary {
+    color: hsl(0 0% 100% / 0.6);
+  }
+  .dark .text-muted-arsenal {
     color: hsl(0 0% 100% / 0.45);
   }
 
