@@ -1,4 +1,11 @@
-import { Card } from '@/components/ui/card'
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Pagination } from '@/components/ui/pagination'
@@ -92,79 +99,151 @@ export function EntryList({
 
   return (
     <div className="space-y-4">
-      <Card>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Title</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Updated</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {entries.map((entry) => (
-              <TableRow key={entry.id}>
-                <TableCell className="font-medium">
-                  {getEntryTitle(entry)}
-                  <div className="text-xs text-muted-foreground">
-                    /{entry.slug}
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={entry.status === 'published' ? 'success' : 'warning'}
-                  >
-                    {entry.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-muted-foreground">
-                  {formatDate(entry.updatedAt)}
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => onEdit(entry)}
+      {/* Desktop: Table view */}
+      <div className="hidden md:block">
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last Updated</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {entries.map((entry) => (
+                <TableRow key={entry.id}>
+                  <TableCell className="font-medium">
+                    {getEntryTitle(entry)}
+                    <div className="text-xs text-muted-foreground">
+                      /{entry.slug}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant={entry.status === 'published' ? 'success' : 'warning'}
                     >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    {deleteConfirm === entry.id ? (
-                      <>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => onDelete(entry.id)}
-                          disabled={deleteMutation.isPending}
-                        >
-                          Confirm
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeleteConfirm(null)}
-                          disabled={deleteMutation.isPending}
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    ) : (
+                      {entry.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {formatDate(entry.updatedAt)}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => setDeleteConfirm(entry.id)}
+                        onClick={() => onEdit(entry)}
                       >
-                        <Trash2 className="h-4 w-4 text-destructive" />
+                        <Edit className="h-4 w-4" />
                       </Button>
-                    )}
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </Card>
+                      {deleteConfirm === entry.id ? (
+                        <>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => onDelete(entry.id)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            Confirm
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeleteConfirm(null)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            Cancel
+                          </Button>
+                        </>
+                      ) : (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteConfirm(entry.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
+      </div>
+
+      {/* Mobile: Card view */}
+      <div className="md:hidden space-y-4">
+        {entries.map((entry) => (
+          <Card key={entry.id}>
+            <CardHeader>
+              <div className="flex items-start justify-between">
+                <div className="flex-1 min-w-0">
+                  <CardTitle className="text-base truncate">{getEntryTitle(entry)}</CardTitle>
+                  <CardDescription className="text-xs">/{entry.slug}</CardDescription>
+                </div>
+                <Badge
+                  variant={entry.status === 'published' ? 'success' : 'warning'}
+                  className="ml-2 shrink-0"
+                >
+                  {entry.status}
+                </Badge>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Updated {formatDate(entry.updatedAt)}
+              </p>
+            </CardContent>
+            <CardFooter className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1 h-11"
+                onClick={() => onEdit(entry)}
+              >
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </Button>
+              {deleteConfirm === entry.id ? (
+                <>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="flex-1 h-11"
+                    onClick={() => onDelete(entry.id)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    Confirm
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1 h-11"
+                    onClick={() => setDeleteConfirm(null)}
+                    disabled={deleteMutation.isPending}
+                  >
+                    Cancel
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-11 px-3"
+                  onClick={() => setDeleteConfirm(entry.id)}
+                >
+                  <Trash2 className="h-4 w-4 text-destructive" />
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
+        ))}
+      </div>
 
       {/* Pagination */}
       <Pagination
