@@ -17,12 +17,12 @@ export function DashboardPage() {
   return (
     <Shell title="Dashboard">
       <div>
-        <h1 className="text-2xl font-bold">Dashboard</h1>
-        <p className="mt-2 text-muted-foreground">
+        <h1 className="text-xl md:text-2xl font-bold">Dashboard</h1>
+        <p className="mt-1 md:mt-2 text-sm md:text-base text-muted-foreground">
           Overview of your Slatestack CMS
         </p>
 
-        <div className="mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-6 md:mt-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {statCards.map((card, index) => (
             <StatsCard
               key={card.title}
@@ -37,7 +37,7 @@ export function DashboardPage() {
         </div>
 
         {/* Metrics card with trend visualization */}
-        <div className="mt-4">
+        <div className="mt-6 md:mt-4">
           <MetricsCard />
         </div>
       </div>
