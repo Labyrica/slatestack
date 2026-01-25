@@ -10,6 +10,7 @@ import {
   getMedia,
   updateMedia,
   deleteMedia,
+  getStorageStats,
 } from "./media.service.js";
 import {
   UploadResponseSchema,
@@ -20,6 +21,7 @@ import {
   MediaListQuerySchema,
   PaginatedMediaListSchema,
   UpdateMediaSchema,
+  StorageStatsSchema,
 } from "./media.schemas.js";
 
 export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
@@ -40,6 +42,23 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
     async (request, reply) => {
       const result = await listMedia(request.query);
       return reply.send(result);
+    }
+  );
+
+  // GET /api/admin/media/storage - Get storage statistics
+  app.get(
+    "/api/admin/media/storage",
+    {
+      preHandler: [requireRole("editor")],
+      schema: {
+        response: {
+          200: StorageStatsSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const stats = await getStorageStats();
+      return reply.send(stats);
     }
   );
 
