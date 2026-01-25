@@ -92,12 +92,12 @@ export function TopPagesChart({ data, isLoading }: TopPagesChartProps) {
               color: 'hsl(var(--card-foreground))',
             }}
             labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
-            itemStyle={{ color: '#3B82F6' }}
+            itemStyle={{ color: 'hsl(var(--preset-chart))' }}
             formatter={(value) => [(value as number).toLocaleString(), 'Views']}
           />
           <Bar
             dataKey="views"
-            fill="#3B82F6"
+            fill="hsl(var(--preset-chart))"
             radius={[0, 2, 2, 0]}
             name="Views"
           />
