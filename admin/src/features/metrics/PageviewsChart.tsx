@@ -21,20 +21,20 @@ interface PageviewsChartProps {
 export function PageviewsChart({ data, isLoading }: PageviewsChartProps) {
   if (isLoading) {
     return (
-      <div className="h-[300px] animate-pulse rounded bg-muted" />
+      <div className="h-64 md:h-[300px] animate-pulse rounded bg-muted" />
     )
   }
 
   if (data.length === 0) {
     return (
-      <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+      <div className="h-64 md:h-[300px] flex items-center justify-center text-muted-foreground">
         No pageview data available
       </div>
     )
   }
 
   return (
-    <div className="h-[300px]">
+    <div className="h-64 md:h-[300px]">
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={data}

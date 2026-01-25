@@ -44,13 +44,13 @@ function CustomYAxisTick(props: any) {
 export function TopPagesChart({ data, isLoading }: TopPagesChartProps) {
   if (isLoading) {
     return (
-      <div className="h-[400px] animate-pulse rounded bg-muted" />
+      <div className="h-64 md:h-[400px] animate-pulse rounded bg-muted" />
     )
   }
 
   if (data.length === 0) {
     return (
-      <div className="h-[400px] flex items-center justify-center text-muted-foreground">
+      <div className="h-64 md:h-[400px] flex items-center justify-center text-muted-foreground">
         No page data available
       </div>
     )
@@ -60,7 +60,7 @@ export function TopPagesChart({ data, isLoading }: TopPagesChartProps) {
   const chartData = data.slice(0, 10)
 
   return (
-    <div className="h-[400px]">
+    <div className="h-64 md:h-[400px]">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={chartData}

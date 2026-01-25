@@ -58,10 +58,10 @@ export function MetricsPage() {
   return (
     <Shell title="Metrics">
       <div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Analytics</h1>
-            <p className="mt-2 text-muted-foreground">
+            <h1 className="text-xl md:text-2xl font-bold">Analytics</h1>
+            <p className="mt-1 md:mt-2 text-sm md:text-base text-muted-foreground">
               Pageview statistics for your content
             </p>
           </div>
@@ -96,7 +96,7 @@ export function MetricsPage() {
 
         {/* Pageviews Trend Chart */}
         <div
-          className="mt-8 opacity-0 animate-slide-up"
+          className="mt-6 md:mt-8 opacity-0 animate-slide-up"
           style={{ animationDelay: '120ms', animationFillMode: 'forwards' }}
         >
           <Card>
@@ -121,7 +121,7 @@ export function MetricsPage() {
 
         {/* Top Pages Section */}
         <div
-          className="mt-8 opacity-0 animate-slide-up"
+          className="mt-6 md:mt-8 opacity-0 animate-slide-up"
           style={{ animationDelay: '240ms', animationFillMode: 'forwards' }}
         >
           <Card>
@@ -148,38 +148,53 @@ export function MetricsPage() {
               {topPagesLoading ? (
                 <TableSkeleton rows={5} />
               ) : topPages?.data && topPages.data.length > 0 ? (
-                <div className="rounded-md border">
-                  <Table>
-                    <thead>
-                      <tr className="border-b bg-muted/50">
-                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground w-16">
-                          Rank
-                        </th>
-                        <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
-                          Path
-                        </th>
-                        <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground w-32">
-                          Views
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {topPages.data.map((page, index) => (
-                        <tr key={page.path} className="border-b">
-                          <td className="p-4 align-middle font-medium">#{index + 1}</td>
-                          <td className="p-4 align-middle">
-                            <code className="text-sm bg-muted px-2 py-1 rounded">
-                              {page.path}
-                            </code>
-                          </td>
-                          <td className="p-4 align-middle text-right font-medium">
-                            {page.views.toLocaleString()}
-                          </td>
+                <>
+                  {/* Desktop table view */}
+                  <div className="hidden md:block rounded-md border">
+                    <Table>
+                      <thead>
+                        <tr className="border-b bg-muted/50">
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground w-16">
+                            Rank
+                          </th>
+                          <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">
+                            Path
+                          </th>
+                          <th className="h-12 px-4 text-right align-middle font-medium text-muted-foreground w-32">
+                            Views
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                </div>
+                      </thead>
+                      <tbody>
+                        {topPages.data.map((page, index) => (
+                          <tr key={page.path} className="border-b">
+                            <td className="p-4 align-middle font-medium">#{index + 1}</td>
+                            <td className="p-4 align-middle">
+                              <code className="text-sm bg-muted px-2 py-1 rounded">
+                                {page.path}
+                              </code>
+                            </td>
+                            <td className="p-4 align-middle text-right font-medium">
+                              {page.views.toLocaleString()}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </Table>
+                  </div>
+                  {/* Mobile card view */}
+                  <div className="md:hidden space-y-3">
+                    {topPages.data.map((page, index) => (
+                      <div key={page.path} className="flex items-center justify-between p-3 rounded-[2px] border bg-card">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-sm font-medium text-muted-foreground shrink-0">#{index + 1}</span>
+                          <code className="text-sm bg-muted px-2 py-1 rounded truncate">{page.path}</code>
+                        </div>
+                        <span className="font-medium shrink-0 ml-2">{page.views.toLocaleString()}</span>
+                      </div>
+                    ))}
+                  </div>
+                </>
               ) : null}
             </CardContent>
           </Card>
