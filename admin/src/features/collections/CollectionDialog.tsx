@@ -145,7 +145,7 @@ export function CollectionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <div className="relative z-50 max-h-[90vh] w-full max-w-4xl overflow-auto rounded-lg bg-background p-6 shadow-lg">
+      <div className="relative z-50 max-h-[90vh] w-full max-w-4xl overflow-auto rounded-[2px] border-2 border-foreground bg-background p-6">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>
