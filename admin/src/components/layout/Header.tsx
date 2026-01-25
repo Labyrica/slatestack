@@ -3,6 +3,7 @@ import { ThemeToggle } from './ThemeToggle'
 import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useDrawerStore } from '@/stores/drawer'
+import { SystemStatus } from '@/components/status/SystemStatus'
 
 interface HeaderProps {
   title?: string
@@ -30,8 +31,9 @@ export function Header({ title = 'Dashboard' }: HeaderProps) {
         <h2 className="text-xl font-semibold">{title}</h2>
       </div>
 
-      {/* Right side: theme toggle + user info */}
+      {/* Right side: status + theme toggle + user info */}
       <div className="flex items-center gap-4">
+        <SystemStatus />
         <ThemeToggle />
         {session?.user && (
           <div className="flex items-center gap-2 text-sm">
