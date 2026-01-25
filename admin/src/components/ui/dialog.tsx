@@ -44,35 +44,39 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
 
 interface DialogHeaderProps {
   children: React.ReactNode
+  className?: string
 }
 
-export function DialogHeader({ children }: DialogHeaderProps) {
-  return <div className="mb-4">{children}</div>
+export function DialogHeader({ children, className }: DialogHeaderProps) {
+  return <div className={cn("mb-4", className)}>{children}</div>
 }
 
 interface DialogTitleProps {
   children: React.ReactNode
+  className?: string
 }
 
-export function DialogTitle({ children }: DialogTitleProps) {
-  return <h2 className="text-xl font-semibold tracking-tight">{children}</h2>
+export function DialogTitle({ children, className }: DialogTitleProps) {
+  return <h2 className={cn("text-xl font-semibold tracking-tight", className)}>{children}</h2>
 }
 
 interface DialogDescriptionProps {
   children: React.ReactNode
+  className?: string
 }
 
-export function DialogDescription({ children }: DialogDescriptionProps) {
-  return <p className="text-sm text-muted-foreground mt-2">{children}</p>
+export function DialogDescription({ children, className }: DialogDescriptionProps) {
+  return <p className={cn("text-sm text-muted-foreground mt-2", className)}>{children}</p>
 }
 
 interface DialogFooterProps {
   children: React.ReactNode
+  className?: string
 }
 
-export function DialogFooter({ children }: DialogFooterProps) {
+export function DialogFooter({ children, className }: DialogFooterProps) {
   return (
-    <div className="mt-6 flex justify-end gap-3">
+    <div className={cn("mt-6 flex justify-end gap-3", className)}>
       {children}
     </div>
   )
