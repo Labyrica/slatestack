@@ -1,11 +1,14 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { PresetId } from '@/lib/presets'
 
 type ThemePreference = 'light' | 'dark' | 'system'
 
 interface ThemeState {
   preference: ThemePreference
   setPreference: (preference: ThemePreference) => void
+  colorPreset: PresetId
+  setColorPreset: (preset: PresetId) => void
 }
 
 // Helper to get effective theme based on preference
@@ -14,6 +17,16 @@ function getEffectiveTheme(preference: ThemePreference): 'light' | 'dark' {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
   return preference
+}
+
+// Apply preset to DOM
+function applyPreset(preset: PresetId) {
+  const root = document.documentElement
+  if (preset === 'default') {
+    root.removeAttribute('data-preset')
+  } else {
+    root.setAttribute('data-preset', preset)
+  }
 }
 
 // Apply theme to DOM and sync FOUC-compatible localStorage key
@@ -38,13 +51,19 @@ export const useThemeStore = create<ThemeState>()(
         set({ preference })
         applyTheme(getEffectiveTheme(preference))
       },
+      colorPreset: 'default' as PresetId,
+      setColorPreset: (preset: PresetId) => {
+        set({ colorPreset: preset })
+        applyPreset(preset)
+      },
     }),
     {
       name: 'slatestack-theme-store', // Different key than FOUC script
       onRehydrateStorage: () => (state) => {
-        // Apply theme after zustand rehydrates from localStorage
+        // Apply theme and preset after zustand rehydrates from localStorage
         if (state) {
           applyTheme(getEffectiveTheme(state.preference))
+          applyPreset(state.colorPreset)
         }
       },
     }
