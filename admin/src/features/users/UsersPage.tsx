@@ -2,6 +2,14 @@ import { useState } from 'react'
 import { Shell } from '@/components/layout/Shell'
 import { Button } from '@/components/ui/button'
 import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from '@/components/ui/card'
+import {
   Table,
   TableBody,
   TableCell,
@@ -64,7 +72,7 @@ export function UsersPage() {
   return (
     <Shell title="Users">
       <div>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h1 className="text-2xl font-bold">Users</h1>
             <p className="mt-2 text-muted-foreground">
@@ -79,53 +87,109 @@ export function UsersPage() {
 
         <div className="mt-8">
           {isLoading ? (
-            <div className="space-y-2">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 animate-pulse rounded bg-muted" />
-              ))}
-            </div>
+            <>
+              {/* Desktop: Table skeleton */}
+              <div className="hidden md:block space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-16 animate-pulse rounded bg-muted" />
+                ))}
+              </div>
+              {/* Mobile: Card skeleton */}
+              <div className="md:hidden space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-40 animate-pulse rounded bg-muted" />
+                ))}
+              </div>
+            </>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+            <>
+              {/* Desktop: Table view */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {users?.map((user) => (
+                      <TableRow key={user.id}>
+                        <TableCell className="font-medium">{user.name}</TableCell>
+                        <TableCell>{user.email}</TableCell>
+                        <TableCell>
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                              user.role === 'admin'
+                                ? 'bg-primary/10 text-primary'
+                                : 'bg-secondary text-secondary-foreground'
+                            }`}
+                          >
+                            {user.role}
+                          </span>
+                        </TableCell>
+                        <TableCell>{formatDate(user.createdAt)}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDeleteClick(user.id, user.name)}
+                            disabled={user.id === currentUserId}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile: Card view */}
+              <div className="md:hidden space-y-4">
                 {users?.map((user) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <span
-                        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                          user.role === 'admin'
-                            ? 'bg-primary/10 text-primary'
-                            : 'bg-secondary text-secondary-foreground'
-                        }`}
-                      >
-                        {user.role}
-                      </span>
-                    </TableCell>
-                    <TableCell>{formatDate(user.createdAt)}</TableCell>
-                    <TableCell>
+                  <Card key={user.id}>
+                    <CardHeader>
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <CardTitle className="text-base">{user.name}</CardTitle>
+                          <CardDescription>{user.email}</CardDescription>
+                        </div>
+                        <span
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                            user.role === 'admin'
+                              ? 'bg-primary/10 text-primary'
+                              : 'bg-secondary text-secondary-foreground'
+                          }`}
+                        >
+                          {user.role}
+                        </span>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-xs text-muted-foreground">
+                        Created {formatDate(user.createdAt)}
+                      </p>
+                    </CardContent>
+                    <CardFooter>
                       <Button
-                        variant="ghost"
+                        variant="destructive"
                         size="sm"
+                        className="w-full h-11"
                         onClick={() => handleDeleteClick(user.id, user.name)}
                         disabled={user.id === currentUserId}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete User
                       </Button>
-                    </TableCell>
-                  </TableRow>
+                    </CardFooter>
+                  </Card>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </>
           )}
         </div>
       </div>
