@@ -56,7 +56,7 @@ export function EntryDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <div className="relative z-50 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-lg bg-background p-6 shadow-lg">
+      <div className="relative z-50 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-[2px] border-2 border-foreground bg-background p-6">
         <DialogHeader>
           <DialogTitle>
             {isEdit ? 'Edit Entry' : 'Create Entry'}
