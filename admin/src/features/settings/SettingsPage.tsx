@@ -3,6 +3,7 @@ import { useSession } from '@/lib/auth'
 import { ProfileSection } from './ProfileSection'
 import { PasswordSection } from './PasswordSection'
 import { SystemInfoSection } from './SystemInfoSection'
+import { PresetSelector } from './PresetSelector'
 
 export function SettingsPage() {
   const { data: session } = useSession()
@@ -36,19 +37,11 @@ export function SettingsPage() {
             >
               <PasswordSection />
             </div>
-            {/* Theme note - Arsenal is dark only */}
             <div
               className="animate-slide-up opacity-0"
               style={{ animationDelay: '740ms' }}
             >
-              <div className="rounded-[16px] border border-border bg-card p-5">
-                <p className="text-sm text-muted-foreground">
-                  Dark mode (always on)
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Arsenal design system uses dark mode exclusively
-                </p>
-              </div>
+              <PresetSelector />
             </div>
           </div>
 
