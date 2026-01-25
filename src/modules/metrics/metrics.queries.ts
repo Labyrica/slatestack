@@ -1,4 +1,4 @@
-import { sql, count, desc, gte } from "drizzle-orm";
+import { sql, count, countDistinct, desc, gte } from "drizzle-orm";
 import { db } from "../../shared/database/index.js";
 import { pageview } from "../../shared/database/schema.js";
 
@@ -153,4 +153,58 @@ export async function getMetricsTrend(
   }
 
   return result;
+}
+
+/**
+ * Get visitor statistics (unique visitors by time period)
+ */
+export async function getVisitorStats(): Promise<{
+  visitors: {
+    today: number;
+    thisWeek: number;
+    thisMonth: number;
+    allTime: number;
+  };
+}> {
+  const now = new Date();
+
+  // Today: UTC midnight
+  const todayStart = new Date();
+  todayStart.setUTCHours(0, 0, 0, 0);
+
+  // This week: 7 days ago
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - 7);
+
+  // This month: first day of current month
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  // Query unique visitors for each period using countDistinct
+  const [todayResult] = await db
+    .select({ count: countDistinct(pageview.visitorHash) })
+    .from(pageview)
+    .where(gte(pageview.createdAt, todayStart));
+
+  const [weekResult] = await db
+    .select({ count: countDistinct(pageview.visitorHash) })
+    .from(pageview)
+    .where(gte(pageview.createdAt, weekStart));
+
+  const [monthResult] = await db
+    .select({ count: countDistinct(pageview.visitorHash) })
+    .from(pageview)
+    .where(gte(pageview.createdAt, monthStart));
+
+  const [allTimeResult] = await db
+    .select({ count: countDistinct(pageview.visitorHash) })
+    .from(pageview);
+
+  return {
+    visitors: {
+      today: todayResult?.count ?? 0,
+      thisWeek: weekResult?.count ?? 0,
+      thisMonth: monthResult?.count ?? 0,
+      allTime: allTimeResult?.count ?? 0,
+    },
+  };
 }
