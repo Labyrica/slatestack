@@ -48,31 +48,31 @@ export function PageviewsChart({ data, isLoading }: PageviewsChartProps) {
           </defs>
           <CartesianGrid
             strokeDasharray="3 3"
-            stroke="rgba(255,255,255,0.1)"
+            stroke="hsl(var(--border))"
             vertical={false}
           />
           <XAxis
             dataKey="date"
-            stroke="rgba(255,255,255,0.6)"
-            tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+            stroke="hsl(var(--muted-foreground))"
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             tickLine={false}
             axisLine={false}
           />
           <YAxis
-            stroke="rgba(255,255,255,0.6)"
-            tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+            stroke="hsl(var(--muted-foreground))"
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             tickLine={false}
             axisLine={false}
             allowDecimals={false}
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#000',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: '6px',
-              color: '#fff',
+              backgroundColor: 'hsl(var(--card))',
+              border: '1px solid hsl(var(--border))',
+              borderRadius: '2px',
+              color: 'hsl(var(--card-foreground))',
             }}
-            labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
+            labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
             itemStyle={{ color: '#3B82F6' }}
           />
           <Area
