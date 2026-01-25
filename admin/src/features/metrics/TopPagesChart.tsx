@@ -33,7 +33,7 @@ function CustomYAxisTick(props: any) {
       y={y}
       dy={4}
       textAnchor="end"
-      fill="rgba(255,255,255,0.6)"
+      fill="hsl(var(--muted-foreground))"
       fontSize={11}
     >
       {displayPath}
@@ -69,8 +69,8 @@ export function TopPagesChart({ data, isLoading }: TopPagesChartProps) {
         >
           <XAxis
             type="number"
-            stroke="rgba(255,255,255,0.6)"
-            tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 12 }}
+            stroke="hsl(var(--muted-foreground))"
+            tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
             tickLine={false}
             axisLine={false}
             allowDecimals={false}
@@ -78,7 +78,7 @@ export function TopPagesChart({ data, isLoading }: TopPagesChartProps) {
           <YAxis
             type="category"
             dataKey="path"
-            stroke="rgba(255,255,255,0.6)"
+            stroke="hsl(var(--muted-foreground))"
             tickLine={false}
             axisLine={false}
             tick={CustomYAxisTick}
@@ -86,19 +86,19 @@ export function TopPagesChart({ data, isLoading }: TopPagesChartProps) {
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: '#000',
-              border: '1px solid rgba(255,255,255,0.15)',
-              borderRadius: '6px',
-              color: '#fff',
+              backgroundColor: 'hsl(var(--card))',
+              border: '1px solid hsl(var(--border))',
+              borderRadius: '2px',
+              color: 'hsl(var(--card-foreground))',
             }}
-            labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
+            labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
             itemStyle={{ color: '#3B82F6' }}
             formatter={(value) => [(value as number).toLocaleString(), 'Views']}
           />
           <Bar
             dataKey="views"
             fill="#3B82F6"
-            radius={[0, 4, 4, 0]}
+            radius={[0, 2, 2, 0]}
             name="Views"
           />
         </BarChart>
