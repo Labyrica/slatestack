@@ -136,4 +136,39 @@
       transform: none !important;
     }
   }
+
+  /* Typography Hierarchy - Brutalist Scale */
+  /* Based on existing usage: text-3xl/2xl for h1, text-xl for h2, text-lg for h3, text-sm for labels */
+
+  .heading-1 {
+    @apply text-3xl font-bold tracking-tight;
+  }
+
+  .heading-2 {
+    @apply text-2xl font-bold tracking-tight;
+  }
+
+  .heading-3 {
+    @apply text-xl font-semibold;
+  }
+
+  .heading-4 {
+    @apply text-lg font-semibold;
+  }
+
+  .heading-5 {
+    @apply text-base font-medium;
+  }
+
+  .label {
+    @apply text-sm font-medium;
+  }
+
+  .body {
+    @apply text-sm;
+  }
+
+  .caption {
+    @apply text-xs text-muted-foreground;
+  }
 }
