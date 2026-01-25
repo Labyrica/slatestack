@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogFooter,
+} from '@/components/ui/responsive-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -144,18 +144,18 @@ export function CollectionDialog({
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <div className="relative z-50 max-h-[90vh] w-full max-w-4xl overflow-auto rounded-[2px] border-2 border-foreground bg-background p-6">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>
-              {isEdit ? 'Edit Collection' : 'Create Collection'}
-            </DialogTitle>
-          </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="max-w-4xl">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>
+            {isEdit ? 'Edit Collection' : 'Create Collection'}
+          </ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
-          <DialogContent className="space-y-6">
+        <form onSubmit={handleSubmit} className="max-h-[70vh] overflow-y-auto">
+          <div className="space-y-6">
             {/* Basic info */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">
                   Collection Name <span className="text-destructive">*</span>
@@ -195,9 +195,9 @@ export function CollectionDialog({
               </Label>
               <SchemaBuilder fields={fields} onChange={setFields} />
             </div>
-          </DialogContent>
+          </div>
 
-          <DialogFooter>
+          <ResponsiveDialogFooter showCloseButton={false} className="mt-6">
             <Button
               type="button"
               variant="outline"
@@ -215,9 +215,9 @@ export function CollectionDialog({
                   ? 'Update Collection'
                   : 'Create Collection'}
             </Button>
-          </DialogFooter>
+          </ResponsiveDialogFooter>
         </form>
-      </div>
-    </Dialog>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }

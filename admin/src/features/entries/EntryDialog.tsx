@@ -1,9 +1,9 @@
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  ResponsiveDialog,
+  ResponsiveDialogContent,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+} from '@/components/ui/responsive-dialog'
 import { useCreateEntry, useUpdateEntry } from '@/hooks/use-entries'
 import type { Entry } from '@/types/entry'
 import type { Collection } from '@/types/collection'
@@ -55,15 +55,15 @@ export function EntryDialog({
   const isPending = createMutation.isPending || updateMutation.isPending
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <div className="relative z-50 max-h-[90vh] w-full max-w-2xl overflow-auto rounded-[2px] border-2 border-foreground bg-background p-6">
-        <DialogHeader>
-          <DialogTitle>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent className="max-w-2xl">
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>
             {isEdit ? 'Edit Entry' : 'Create Entry'}
-          </DialogTitle>
-        </DialogHeader>
+          </ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
-        <DialogContent className="mt-4">
+        <div className="mt-4 max-h-[70vh] overflow-y-auto">
           <DynamicForm
             collection={collection}
             defaultValues={entry?.data}
@@ -73,8 +73,8 @@ export function EntryDialog({
             isPending={isPending}
             submitLabel={isEdit ? 'Update Entry' : 'Create Entry'}
           />
-        </DialogContent>
-      </div>
-    </Dialog>
+        </div>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }
