@@ -24,8 +24,14 @@
     --muted: 0 0% 96%;
     --muted-foreground: 0 0% 40%;         /* 40% black for muted text */
 
-    /* Accent (Arsenal blue) */
-    --accent: 217 91% 60%;                /* #3B82F6 */
+    /* Preset accent colors - default is Arsenal blue */
+    --preset-accent: 217 91% 60%;         /* #3B82F6 */
+    --preset-highlight: 217 91% 70%;
+    --preset-tint: 217 30% 95%;
+    --preset-chart: 217 91% 60%;
+
+    /* Accent (wired to preset system) */
+    --accent: var(--preset-accent);
     --accent-foreground: 0 0% 100%;
 
     /* Destructive (Arsenal red) */
@@ -39,12 +45,6 @@
 
     /* Radius - Arsenal minimal */
     --radius: 2px;
-
-    /* Preset accent colors - default inherits from existing accent */
-    --preset-accent: var(--accent);
-    --preset-highlight: 217 91% 70%;
-    --preset-tint: 217 30% 95%;
-    --preset-chart: 217 91% 60%;
   }
 
   .dark {
@@ -68,8 +68,11 @@
     --muted: 0 0% 15%;
     --muted-foreground: 0 0% 60%;       /* 60% white for muted text */
 
-    /* Accent (Arsenal blue) */
-    --accent: 217 91% 60%;              /* #3B82F6 */
+    /* Preset dark mode overrides */
+    --preset-tint: 217 30% 15%;
+
+    /* Accent (wired to preset system) */
+    --accent: var(--preset-accent);
     --accent-foreground: 0 0% 100%;
 
     /* Destructive (Arsenal red) */
@@ -83,9 +86,6 @@
 
     /* Radius - Arsenal minimal */
     --radius: 2px;
-
-    /* Dark mode preset tint override */
-    --preset-tint: 217 30% 15%;
   }
 
   /* Ocean preset */
