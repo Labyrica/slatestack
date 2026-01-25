@@ -26,7 +26,7 @@ export function AlertDialog({ open, onOpenChange, children }: AlertDialogProps) 
         className="fixed inset-0 bg-background/50"
         onClick={() => onOpenChange?.(false)}
       />
-      <div className="relative z-50 max-w-md w-full mx-4 rounded-[2px] border-2 border-foreground bg-background p-6">
+      <div className="relative z-50 max-w-md w-full mx-4 rounded-[2px] border-2 border-foreground bg-background p-4 sm:p-6">
         {children}
       </div>
     </div>
@@ -63,7 +63,7 @@ interface AlertDialogFooterProps {
 
 export function AlertDialogFooter({ children }: AlertDialogFooterProps) {
   return (
-    <div className="mt-6 flex justify-end gap-2">
+    <div className="mt-6 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
       {children}
     </div>
   )
