@@ -457,7 +457,12 @@ export async function cropImage(
 
 export async function getStorageStats(): Promise<{
   total: number;
-  breakdown: Record<string, number>;
+  breakdown: {
+    images: number;
+    videos: number;
+    documents: number;
+    audio: number;
+  };
 }> {
   // Get total storage
   const [{ totalBytes }] = await db
@@ -465,7 +470,12 @@ export async function getStorageStats(): Promise<{
     .from(mediaFile);
 
   // Get breakdown by category using existing TYPE_FILTERS
-  const breakdown: Record<string, number> = {};
+  const breakdown = {
+    images: 0,
+    videos: 0,
+    documents: 0,
+    audio: 0,
+  };
 
   for (const [category, mimeTypes] of Object.entries(TYPE_FILTERS)) {
     const [{ categoryTotal }] = await db
