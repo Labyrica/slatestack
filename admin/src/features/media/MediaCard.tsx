@@ -46,7 +46,7 @@ export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected,
   return (
     <Card
       className={cn(
-        'group relative overflow-hidden cursor-pointer transition-all hover:shadow-md',
+        'group relative overflow-hidden cursor-pointer transition-all hover:border-2 hover:border-foreground',
         selected && 'ring-2 ring-primary',
         className
       )}
@@ -103,7 +103,7 @@ export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected,
                   setMenuOpen(false)
                 }}
               />
-              <div className="absolute right-0 top-full mt-1 z-20 w-40 rounded-md border bg-background shadow-lg">
+              <div className="absolute right-0 top-full mt-1 z-20 w-40 rounded-[2px] border-2 border-foreground bg-background">
                 <div className="p-1">
                   <button
                     className="flex w-full items-center gap-2 rounded-sm px-2 py-2 text-sm hover:bg-accent"
