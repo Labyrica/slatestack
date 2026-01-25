@@ -1,11 +1,11 @@
 import { useState } from 'react'
 import {
-  Dialog,
-  DialogHeader,
-  DialogTitle,
-  DialogContent,
-  DialogFooter,
-} from '@/components/ui/dialog'
+  ResponsiveDialog,
+  ResponsiveDialogHeader,
+  ResponsiveDialogTitle,
+  ResponsiveDialogContent,
+  ResponsiveDialogFooter,
+} from '@/components/ui/responsive-dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -44,13 +44,13 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogHeader>
-        <DialogTitle>Create New User</DialogTitle>
-      </DialogHeader>
+    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+      <ResponsiveDialogContent>
+        <ResponsiveDialogHeader>
+          <ResponsiveDialogTitle>Create New User</ResponsiveDialogTitle>
+        </ResponsiveDialogHeader>
 
-      <form onSubmit={handleSubmit}>
-        <DialogContent>
+        <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>
@@ -101,21 +101,21 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
               </Select>
             </div>
           </div>
-        </DialogContent>
 
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button type="submit" disabled={createUser.isPending}>
-            {createUser.isPending ? 'Creating...' : 'Create User'}
-          </Button>
-        </DialogFooter>
-      </form>
-    </Dialog>
+          <ResponsiveDialogFooter showCloseButton={false} className="mt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={createUser.isPending}>
+              {createUser.isPending ? 'Creating...' : 'Create User'}
+            </Button>
+          </ResponsiveDialogFooter>
+        </form>
+      </ResponsiveDialogContent>
+    </ResponsiveDialog>
   )
 }
