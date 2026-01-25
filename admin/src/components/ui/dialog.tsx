@@ -32,8 +32,7 @@ export function Dialog({ open, onOpenChange, children }: DialogProps) {
       <div
         className={cn(
           "relative z-50 max-h-[90vh] w-full max-w-2xl overflow-auto",
-          "rounded-[16px] border border-border bg-background p-6",
-          "shadow-[0_16px_32px_rgba(0,0,0,0.5)]",
+          "rounded-[2px] border-2 border-foreground bg-background p-6",
           "transition-all duration-[400ms] ease-[cubic-bezier(0.4,0,0.2,1)]"
         )}
       >
