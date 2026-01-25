@@ -59,3 +59,13 @@ export const ImageInfoSchema = Type.Object({
   height: Type.Number(),
   format: Type.String(),
 });
+
+export const StorageStatsSchema = Type.Object({
+  total: Type.Number(),  // Total bytes across all files
+  breakdown: Type.Object({
+    images: Type.Number(),
+    videos: Type.Number(),
+    documents: Type.Number(),
+    audio: Type.Number(),
+  }),
+});
