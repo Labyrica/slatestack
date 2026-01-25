@@ -42,8 +42,8 @@ export function PageviewsChart({ data, isLoading }: PageviewsChartProps) {
         >
           <defs>
             <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="rgba(59,130,246,0.3)" />
-              <stop offset="100%" stopColor="rgba(59,130,246,0)" />
+              <stop offset="0%" stopColor="hsl(var(--preset-chart))" stopOpacity={0.3} />
+              <stop offset="100%" stopColor="hsl(var(--preset-chart))" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid
@@ -73,12 +73,12 @@ export function PageviewsChart({ data, isLoading }: PageviewsChartProps) {
               color: 'hsl(var(--card-foreground))',
             }}
             labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
-            itemStyle={{ color: '#3B82F6' }}
+            itemStyle={{ color: 'hsl(var(--preset-chart))' }}
           />
           <Area
             type="monotone"
             dataKey="views"
-            stroke="#3B82F6"
+            stroke="hsl(var(--preset-chart))"
             strokeWidth={2}
             fill="url(#areaGradient)"
             name="Views"

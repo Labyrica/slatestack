@@ -31,6 +31,18 @@
         if (isDark) {
           document.documentElement.classList.add('dark');
         }
+
+        // Apply color preset
+        var colorPreset = null;
+        if (storeData) {
+          try {
+            var parsed = JSON.parse(storeData);
+            colorPreset = parsed.state && parsed.state.colorPreset;
+          } catch(e) {}
+        }
+        if (colorPreset && colorPreset !== 'default') {
+          document.documentElement.setAttribute('data-preset', colorPreset);
+        }
       })();
     </script>
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
