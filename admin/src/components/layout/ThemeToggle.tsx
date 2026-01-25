@@ -16,7 +16,7 @@ export function ThemeToggle() {
 
   return (
     <div
-      className="flex items-center rounded-[6px] border border-border p-0.5"
+      className="flex items-center rounded-[2px] border border-border p-0.5"
       role="radiogroup"
       aria-label="Theme selection"
     >
@@ -26,7 +26,7 @@ export function ThemeToggle() {
           variant="ghost"
           size="icon"
           className={cn(
-            'h-8 w-8 rounded-[4px] transition-colors',
+            'h-8 w-8 rounded-[2px] transition-colors',
             preference === value
               ? 'bg-muted text-foreground'
               : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'

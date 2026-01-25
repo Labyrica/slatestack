@@ -38,7 +38,7 @@
     --ring: 0 0% 0%;
 
     /* Radius - Arsenal minimal */
-    --radius: 3px;
+    --radius: 2px;
   }
 
   .dark {
@@ -76,7 +76,7 @@
     --ring: 0 0% 100%;
 
     /* Radius - Arsenal minimal */
-    --radius: 3px;
+    --radius: 2px;
   }
 }
 
