@@ -15,28 +15,30 @@ const Switch = React.forwardRef<HTMLInputElement, SwitchProps>(
     }
 
     return (
-      <label
-        className={cn(
-          'relative inline-flex h-6 w-11 cursor-pointer items-center rounded-full transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
-          checked ? 'bg-primary' : 'bg-input',
-          className
-        )}
-      >
-        <input
-          type="checkbox"
-          className="sr-only"
-          checked={checked}
-          onChange={handleChange}
-          ref={ref}
-          {...props}
-        />
-        <span
+      <div className="inline-flex items-center justify-center h-11 -my-2">
+        <label
           className={cn(
-            'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-background ring-0 transition-transform',
-            checked ? 'translate-x-5' : 'translate-x-1'
+            'relative inline-flex h-7 w-14 cursor-pointer items-center rounded-full transition-colors focus-within:outline-none focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50',
+            checked ? 'bg-primary' : 'bg-input',
+            className
           )}
-        />
-      </label>
+        >
+          <input
+            type="checkbox"
+            className="sr-only"
+            checked={checked}
+            onChange={handleChange}
+            ref={ref}
+            {...props}
+          />
+          <span
+            className={cn(
+              'pointer-events-none inline-block h-6 w-6 transform rounded-full bg-background ring-0 transition-transform',
+              checked ? 'translate-x-7' : 'translate-x-0.5'
+            )}
+          />
+        </label>
+      </div>
     )
   }
 )
