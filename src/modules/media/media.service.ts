@@ -6,7 +6,7 @@ import { fileTypeFromBuffer } from "file-type";
 import path from "path";
 import fs from "fs/promises";
 import crypto from "crypto";
-import { eq, or, ilike, sql, desc, count, inArray } from "drizzle-orm";
+import { eq, or, ilike, sql, desc, count, inArray, sum } from "drizzle-orm";
 import type { MediaFileInput, MediaFileResponse } from "./media.types.js";
 
 const ALLOWED_TYPES = [
@@ -452,5 +452,36 @@ export async function cropImage(
     uploadedBy: inserted.uploadedBy,
     createdAt: inserted.createdAt.toISOString(),
     updatedAt: inserted.updatedAt.toISOString(),
+  };
+}
+
+export async function getStorageStats(): Promise<{
+  total: number;
+  breakdown: Record<string, number>;
+}> {
+  // Get total storage
+  const [{ totalBytes }] = await db
+    .select({ totalBytes: sum(mediaFile.size) })
+    .from(mediaFile);
+
+  // Get breakdown by category using existing TYPE_FILTERS
+  const breakdown: Record<string, number> = {};
+
+  for (const [category, mimeTypes] of Object.entries(TYPE_FILTERS)) {
+    const [{ categoryTotal }] = await db
+      .select({ categoryTotal: sum(mediaFile.size) })
+      .from(mediaFile)
+      .where(inArray(mediaFile.mimeType, mimeTypes));
+
+    // Map 'image' -> 'images', 'document' -> 'documents' for plural category names
+    const pluralKey = category === 'image' ? 'images' :
+                      category === 'document' ? 'documents' :
+                      category === 'video' ? 'videos' : 'audio';
+    breakdown[pluralKey] = Number(categoryTotal) || 0;
+  }
+
+  return {
+    total: Number(totalBytes) || 0,
+    breakdown,
   };
 }
