@@ -10,6 +10,7 @@ import { UploadZone } from './UploadZone'
 import { MediaGrid } from './MediaGrid'
 import { MediaDetailDialog } from './MediaDetailDialog'
 import { CropDialog } from './CropDialog'
+import { StorageCard } from './StorageCard'
 import { useMedia, useDeleteMedia } from '@/hooks/use-media'
 import type { MediaFile, MediaType } from '@/types/media'
 
@@ -85,6 +86,8 @@ export function MediaPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Media Library</h1>
         </div>
+
+        <StorageCard />
 
         <UploadZone />
 
