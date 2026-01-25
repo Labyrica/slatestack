@@ -10,9 +10,9 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 
 ## Current State
 
-**Version:** v1.0 MVP (shipped 2026-01-23)
-**Codebase:** 9,019 lines TypeScript across 125 files
-**Stack:** Node + Fastify + Drizzle + PostgreSQL + React + Vite
+**Version:** v1.3 Polish & Public API (in progress)
+**Codebase:** ~13,500 lines TypeScript across 200+ files
+**Stack:** Node + Fastify + Drizzle + PostgreSQL + React + Vite + Recharts + Zustand
 
 **What's Working:**
 - Authentication with better-auth (email/password, sessions, admin/editor roles)
@@ -22,10 +22,18 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 - Privacy-friendly metrics (no cookies, hashed visitor IDs)
 - Docker deployment with one command
 - Demo frontend showing published content
+- Arsenal design system with Space Grotesk typography
+- Light/dark/system theme with three-way toggle
+- Enhanced Metrics page with charts and trend indicators
+- Settings page with system info
+- Full mobile responsiveness with 44px touch targets
+- Responsive dialogs (drawer on mobile, dialog on desktop)
+- Mobile navigation drawer
+- Mobile card views for data tables
 
 ## Requirements
 
-### Validated (v1.0)
+### Validated (v1.0 + v1.1 + v1.2)
 
 - Admin created from env vars on startup — v1.0
 - Email/password login with session persistence — v1.0
@@ -37,10 +45,29 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 - Privacy-friendly metrics — v1.0
 - Admin panel at /admin — v1.0
 - Docker deployment — v1.0
+- Arsenal design system with dark mode — v1.1
+- Space Grotesk typography and color tokens — v1.1
+- Staggered animations and reduced-motion support — v1.1
+- Settings page with system info — v1.1
+- Metrics page with charts and trends — v1.1
+- Light theme with three-way toggle (light/dark/system) — v1.2
+- Semantic CSS tokens for theming — v1.2
+- 44px minimum touch targets for mobile — v1.2
+- ResponsiveDialog (drawer on mobile) — v1.2
+- Mobile navigation drawer — v1.2
+- Mobile card views for data tables — v1.2
 
 ### Active
 
-(Define for next milestone)
+**v1.3 Polish & Public API:**
+- [ ] Color preset themes (multiple color schemes beyond light/dark)
+- [ ] Theme settings integration (remove misleading "Dark mode always on")
+- [ ] Public metrics API (aggregate visitor stats: today, week, month, all-time)
+- [ ] Media library storage indicator (total upload size counter/bar)
+- [ ] Login page visual polish (match Arsenal design)
+- [ ] Login page features (remember me, forgot password link)
+- [ ] Status indicator in header (database connection status)
+- [ ] Status indicator on login page
 
 ### Out of Scope
 
@@ -83,6 +110,26 @@ The content schema should be simple enough that an AI can generate a frontend fr
 | TypeBox for runtime validation | Type-safe validation from dynamic schemas | ✓ Good |
 | Magic number validation | Prevents MIME type spoofing attacks | ✓ Good |
 | Multi-stage Docker builds | Minimal production image, secure | ✓ Good |
+| Arsenal design system | Consistent, modern UI with dark mode foundation | ✓ Good |
+| Space Grotesk font | Modern geometric sans-serif, excellent readability | ✓ Good |
+| Recharts for metrics | Lightweight, React-native charting | ✓ Good |
+| Hash-based color assignment | Consistent colors for dynamic content | ✓ Good |
+| Three-way theme toggle | Respect system preference, allow user override | ✓ Good |
+| 44px touch targets | Apple HIG / Android guidelines for accessibility | ✓ Good |
+| Dialog-to-drawer pattern | Native-feeling mobile experience | ✓ Good |
+| Card views for mobile tables | Better mobile data presentation than scrolling | ✓ Good |
+| Zustand for drawer state | Simple global state, already in use | ✓ Good |
+
+## Current Milestone: v1.3 Polish & Public API
+
+**Goal:** Expand theming with color presets, expose public metrics API for frontend widgets, add polish to login and media library, add system status indicators.
+
+**Target features:**
+- Color preset themes (beyond light/dark/system)
+- Public metrics API for frontend visitor widgets
+- Media library storage indicator
+- Enhanced login page with features
+- System status indicators (database, etc.)
 
 ---
-*Last updated: 2026-01-23 after v1.0 milestone*
+*Last updated: 2026-01-25 after v1.3 milestone start*
