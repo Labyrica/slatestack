@@ -26,7 +26,7 @@ export function ThemeToggle() {
           variant="ghost"
           size="icon"
           className={cn(
-            'h-8 w-8 rounded-[2px] transition-colors',
+            'h-11 w-11 rounded-[2px] transition-colors',
             preference === value
               ? 'bg-muted text-foreground'
               : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
