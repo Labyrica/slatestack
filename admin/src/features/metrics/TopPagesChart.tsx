@@ -61,7 +61,7 @@ export function TopPagesChart({ data, isLoading }: TopPagesChartProps) {
 
   return (
     <div className="h-64 md:h-[400px]">
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer width="100%" height="100%" minWidth={0}>
         <BarChart
           data={chartData}
           layout="vertical"
