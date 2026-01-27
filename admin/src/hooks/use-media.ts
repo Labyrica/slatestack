@@ -23,6 +23,7 @@ export function useMedia(params: UseMediaParams = {}) {
   return useQuery({
     queryKey: ['media', params],
     queryFn: () => fetcher<MediaListResponse>(`/admin/media${queryString ? `?${queryString}` : ''}`),
+    throwOnError: true,
   })
 }
 
@@ -31,6 +32,7 @@ export function useSingleMedia(id: string) {
     queryKey: ['media', id],
     queryFn: () => fetcher<MediaFile>(`/admin/media/${id}`),
     enabled: !!id,
+    throwOnError: true,
   })
 }
 

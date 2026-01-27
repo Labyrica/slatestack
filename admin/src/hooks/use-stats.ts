@@ -42,5 +42,6 @@ export function useStats() {
 
       return stats
     },
+    throwOnError: true,
   })
 }
