@@ -33,14 +33,12 @@ export function EntriesPage() {
   const {
     data: collection,
     isLoading: isLoadingCollection,
-    error: collectionError,
   } = useCollection(collectionId || '')
 
   // Fetch entries with search, filter, and pagination
   const {
     data: entriesData,
     isLoading: isLoadingEntries,
-    error: entriesError,
   } = useEntries(collectionId || '', {
     q: debouncedSearchQuery || undefined,
     status: statusFilter,
@@ -87,26 +85,6 @@ export function EntriesPage() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-  }
-
-  if (collectionError) {
-    return (
-      <Shell title="Entries">
-        <div className="flex h-full items-center justify-center">
-          <Card className="p-6">
-            <p className="text-destructive">Failed to load collection</p>
-            <Button
-              variant="outline"
-              onClick={() => navigate('/collections')}
-              className="mt-4"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Collections
-            </Button>
-          </Card>
-        </div>
-      </Shell>
-    )
   }
 
   if (isLoadingCollection) {
@@ -167,13 +145,6 @@ export function EntriesPage() {
             </Select>
           </div>
         </Card>
-
-        {/* Error state */}
-        {entriesError && (
-          <Card className="p-6">
-            <p className="text-destructive">Failed to load entries</p>
-          </Card>
-        )}
 
         {/* Entries list */}
         <EntryList
