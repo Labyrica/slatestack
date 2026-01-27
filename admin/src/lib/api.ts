@@ -1,4 +1,14 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient, QueryCache, MutationCache } from '@tanstack/react-query'
+import { toast } from 'sonner'
+
+export class APIError extends Error {
+  status: number
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'APIError'
+    this.status = status
+  }
+}
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -9,6 +19,20 @@ export const queryClient = new QueryClient({
       refetchOnReconnect: true,
     },
   },
+  queryCache: new QueryCache({
+    onError: (error, query) => {
+      // Only toast for background refetch failures (data already exists)
+      if (query.state.data !== undefined) {
+        toast.error(`Refresh failed: ${error.message}`)
+      }
+    },
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => {
+      // Fallback toast for mutations without onError handler
+      toast.error(error.message || 'Operation failed')
+    },
+  }),
 })
 
 export async function fetcher<T>(
@@ -25,7 +49,14 @@ export async function fetcher<T>(
   })
 
   if (!response.ok) {
-    throw new Error(response.statusText)
+    let errorMessage = response.statusText || 'Request failed'
+    try {
+      const body = await response.json()
+      errorMessage = body.error || body.message || errorMessage
+    } catch {
+      // If JSON parsing fails, use statusText
+    }
+    throw new APIError(errorMessage, response.status)
   }
 
   return response.json()
