@@ -24,6 +24,11 @@ COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=admin-builder --chown=nodejs:nodejs /app/dist ./admin/dist
 COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs drizzle.config.ts ./
+
+# Create uploads directory with correct ownership BEFORE switching users
+# Named volumes will inherit this ownership when first mounted
+RUN mkdir -p /app/uploads && chown nodejs:nodejs /app/uploads
+
 USER nodejs
 EXPOSE 3000
 ENV NODE_ENV=production
