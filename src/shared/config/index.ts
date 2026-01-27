@@ -15,6 +15,17 @@ const EnvSchema = Type.Object({
     ],
     { default: "development" }
   ),
+  LOG_LEVEL: Type.Union(
+    [
+      Type.Literal("fatal"),
+      Type.Literal("error"),
+      Type.Literal("warn"),
+      Type.Literal("info"),
+      Type.Literal("debug"),
+      Type.Literal("trace"),
+    ],
+    { default: "info" }
+  ),
   MAX_FILE_SIZE: Type.Number({ default: 10485760 }), // 10MB default
   UPLOAD_DIR: Type.String({ default: "./uploads" }),
   METRICS_SALT: Type.String({ default: "change-me-in-production" }),

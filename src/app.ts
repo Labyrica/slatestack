@@ -19,7 +19,19 @@ import healthRoutes from "./routes/health.js";
 
 export async function buildApp() {
   const fastify = Fastify({
-    logger: true,
+    logger: {
+      level: process.env.LOG_LEVEL || 'info',
+      // Pretty-print in development only
+      ...(process.env.NODE_ENV === 'development' && {
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            translateTime: 'HH:MM:ss Z',
+            ignore: 'pid,hostname',
+          },
+        },
+      }),
+    },
   })
     .withTypeProvider<TypeBoxTypeProvider>()
     .setValidatorCompiler(TypeBoxValidatorCompiler);

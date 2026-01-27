@@ -4,6 +4,15 @@ export interface HealthResponse {
   status: 'ok' | 'degraded' | 'error'
   database: 'connected' | 'disconnected'
   media: 'writable' | 'unavailable'
+  memory: {
+    rss: number
+    heapTotal: number
+    heapUsed: number
+    heapPercent: number
+  }
+  uptime: number
+  nodeVersion: string
+  responseTime: number
 }
 
 export interface UseHealthOptions {
