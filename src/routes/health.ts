@@ -23,7 +23,12 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
     const testFile = path.join(uploadDir, `.health-check-${Date.now()}`);
     try {
       await fs.promises.writeFile(testFile, "health-check");
-      await fs.promises.unlink(testFile);
+      try {
+        await fs.promises.unlink(testFile);
+      } catch {
+        // Cleanup failed - log but don't affect status since write succeeded
+        request.log.debug({ testFile }, "Health check cleanup failed");
+      }
       mediaStatus = "writable";
     } catch (error) {
       request.log.warn(
