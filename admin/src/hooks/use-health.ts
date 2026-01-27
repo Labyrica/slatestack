@@ -25,7 +25,15 @@ export const healthQueryOptions = queryOptions({
     const response = await fetch('/api/health')
     if (!response.ok) {
       // Treat HTTP errors as system error
-      return { status: 'error', database: 'disconnected', media: 'unavailable' }
+      return {
+        status: 'error',
+        database: 'disconnected',
+        media: 'unavailable',
+        memory: { rss: 0, heapTotal: 0, heapUsed: 0, heapPercent: 0 },
+        uptime: 0,
+        nodeVersion: '',
+        responseTime: 0,
+      }
     }
     return response.json()
   },
