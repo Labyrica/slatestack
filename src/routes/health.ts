@@ -6,6 +6,8 @@ import { db } from "../shared/database/index.js";
 
 const healthRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.get("/api/health", async (request, reply) => {
+    const startTime = Date.now();
+
     let databaseStatus: "connected" | "disconnected" = "disconnected";
     let mediaStatus: "writable" | "unavailable" = "unavailable";
 
@@ -37,11 +39,15 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
       );
     }
 
+    // Gather memory metrics
+    const memoryUsage = process.memoryUsage();
+    const heapPercent = Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100);
+
     // Determine overall status
     let status: "ok" | "degraded" | "error";
     if (databaseStatus === "disconnected") {
       status = "error";
-    } else if (mediaStatus === "unavailable") {
+    } else if (mediaStatus === "unavailable" || heapPercent > 90) {
       status = "degraded";
     } else {
       status = "ok";
@@ -57,7 +63,16 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
     return {
       status,
       database: databaseStatus,
-      media: mediaStatus
+      media: mediaStatus,
+      memory: {
+        rss: memoryUsage.rss,
+        heapTotal: memoryUsage.heapTotal,
+        heapUsed: memoryUsage.heapUsed,
+        heapPercent,
+      },
+      uptime: process.uptime(),
+      nodeVersion: process.version,
+      responseTime: Date.now() - startTime,
     };
   });
 };
