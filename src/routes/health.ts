@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from "fastify";
 import { sql } from "drizzle-orm";
 import fs from "fs";
+import path from "path";
 import { db } from "../shared/database/index.js";
 
 const healthRoutes: FastifyPluginAsync = async (fastify) => {
@@ -16,13 +17,19 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
       request.log.error(error, "Database health check failed");
     }
 
-    // Test media storage writability
+    // Test media storage writability with actual write operation
+    // fs.access() has race conditions and false positives on NFS/Windows
     const uploadDir = process.env.UPLOAD_DIR || "./uploads";
+    const testFile = path.join(uploadDir, `.health-check-${Date.now()}`);
     try {
-      await fs.promises.access(uploadDir, fs.constants.W_OK);
+      await fs.promises.writeFile(testFile, "health-check");
+      await fs.promises.unlink(testFile);
       mediaStatus = "writable";
     } catch (error) {
-      request.log.warn(error, "Media storage check failed");
+      request.log.warn(
+        { err: error, uploadDir },
+        "Media storage writability check failed - uploads may not work"
+      );
     }
 
     // Determine overall status

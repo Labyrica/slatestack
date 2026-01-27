@@ -10,7 +10,7 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 
 ## Current State
 
-**Version:** v1.3 Polish & Public API (in progress)
+**Version:** v1.3 Polish & Public API (shipped 2026-01-27)
 **Codebase:** ~13,500 lines TypeScript across 200+ files
 **Stack:** Node + Fastify + Drizzle + PostgreSQL + React + Vite + Recharts + Zustand
 
@@ -33,7 +33,7 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 
 ## Requirements
 
-### Validated (v1.0 + v1.1 + v1.2)
+### Validated (v1.0 + v1.1 + v1.2 + v1.3)
 
 - Admin created from env vars on startup — v1.0
 - Email/password login with session persistence — v1.0
@@ -56,18 +56,23 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 - ResponsiveDialog (drawer on mobile) — v1.2
 - Mobile navigation drawer — v1.2
 - Mobile card views for data tables — v1.2
+- Color preset themes (5 presets: Default, Ocean, Forest, Sunset, Lavender) — v1.3
+- Theme settings with preset selector — v1.3
+- Public metrics API (aggregate visitor stats with rate limiting and CORS) — v1.3
+- Media library storage indicator with progress bar and type breakdown — v1.3
+- System status indicators in header and login page — v1.3
+- Login page with Arsenal design, password toggle, remember me (30-day sessions) — v1.3
 
 ### Active
 
-**v1.3 Polish & Public API:**
-- [ ] Color preset themes (multiple color schemes beyond light/dark)
-- [ ] Theme settings integration (remove misleading "Dark mode always on")
-- [ ] Public metrics API (aggregate visitor stats: today, week, month, all-time)
-- [ ] Media library storage indicator (total upload size counter/bar)
-- [ ] Login page visual polish (match Arsenal design)
-- [ ] Login page features (remember me, forgot password link)
-- [ ] Status indicator in header (database connection status)
-- [ ] Status indicator on login page
+**v1.4 Robustness & Observability**
+
+- [ ] Unified status indicators (single source of truth for health state)
+- [ ] Consistent health caching (synchronized across all components)
+- [ ] Docker volume permissions (fix media storage EACCES)
+- [ ] Endpoint consistency (same HTTP codes, response shapes)
+- [ ] Error boundaries (graceful degradation on failures)
+- [ ] Basic observability (structured logging, health dashboard)
 
 ### Out of Scope
 
@@ -120,16 +125,18 @@ The content schema should be simple enough that an AI can generate a frontend fr
 | Card views for mobile tables | Better mobile data presentation than scrolling | ✓ Good |
 | Zustand for drawer state | Simple global state, already in use | ✓ Good |
 
-## Current Milestone: v1.3 Polish & Public API
+## Current Milestone: v1.4 Robustness & Observability
 
-**Goal:** Expand theming with color presets, expose public metrics API for frontend widgets, add polish to login and media library, add system status indicators.
+**Goal:** Fix reliability issues with status indicators, caching, and Docker permissions; add basic observability for debugging and monitoring.
 
 **Target features:**
-- Color preset themes (beyond light/dark/system)
-- Public metrics API for frontend visitor widgets
-- Media library storage indicator
-- Enhanced login page with features
-- System status indicators (database, etc.)
+- Unified health state management (single source of truth)
+- Synchronized status display across Header and Settings
+- Docker volume permission fix for media storage
+- Error boundaries for graceful degradation
+- Structured logging and health dashboard
+
+**Previous:** v1.3 Polish & Public API (shipped 2026-01-27)
 
 ---
-*Last updated: 2026-01-25 after v1.3 milestone start*
+*Last updated: 2026-01-27 after v1.4 milestone start*
