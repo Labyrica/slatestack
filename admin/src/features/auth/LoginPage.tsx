@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Checkbox } from '@/components/ui/checkbox'
 import { toast } from 'sonner'
 import { useState } from 'react'
 import { SystemStatus } from '@/components/status/SystemStatus'
@@ -13,6 +14,7 @@ import { Eye, EyeOff } from 'lucide-react'
 type LoginFormData = {
   email: string
   password: string
+  rememberMe: boolean
 }
 
 export function LoginPage() {
@@ -23,7 +25,9 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
 
-  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>()
+  const { register, handleSubmit, formState: { errors } } = useForm<LoginFormData>({
+    mode: 'onBlur'
+  })
 
   // If already logged in, redirect to intended destination
   if (session) {
@@ -39,6 +43,7 @@ export function LoginPage() {
       const result = await signIn.email({
         email: data.email,
         password: data.password,
+        rememberMe: data.rememberMe,
       })
 
       if (result.error) {
@@ -62,9 +67,11 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="flex flex-col items-center gap-4">
-        <Card className="w-full max-w-md">
+        <Card className="w-full max-w-md border-t-4 border-t-[hsl(var(--preset-accent))]">
           <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold text-center">Sign in to Slatestack</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">
+              Sign in to <span className="text-[hsl(var(--preset-accent))]">Slate</span>stack
+            </CardTitle>
             <CardDescription className="text-center">
               Enter your credentials to access the admin panel
             </CardDescription>
@@ -111,6 +118,16 @@ export function LoginPage() {
                 {errors.password && (
                   <p className="text-sm text-destructive">{errors.password.message}</p>
                 )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="rememberMe"
+                  {...register('rememberMe')}
+                />
+                <Label htmlFor="rememberMe" className="text-sm font-normal cursor-pointer">
+                  Remember me for 30 days
+                </Label>
               </div>
 
               {error && (
