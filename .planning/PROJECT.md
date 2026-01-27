@@ -10,8 +10,8 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 
 ## Current State
 
-**Version:** v1.3 Polish & Public API (shipped 2026-01-27)
-**Codebase:** ~13,500 lines TypeScript across 200+ files
+**Version:** v1.4 Robustness & Observability (shipped 2026-01-27)
+**Codebase:** ~11,700 lines TypeScript across 200+ files
 **Stack:** Node + Fastify + Drizzle + PostgreSQL + React + Vite + Recharts + Zustand
 
 **What's Working:**
@@ -25,15 +25,18 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 - Arsenal design system with Space Grotesk typography
 - Light/dark/system theme with three-way toggle
 - Enhanced Metrics page with charts and trend indicators
-- Settings page with system info
+- Settings page with system info and health dashboard
 - Full mobile responsiveness with 44px touch targets
 - Responsive dialogs (drawer on mobile, dialog on desktop)
 - Mobile navigation drawer
 - Mobile card views for data tables
+- Unified health state with single source of truth
+- Error boundaries with graceful degradation
+- Structured JSON logging with configurable levels
 
 ## Requirements
 
-### Validated (v1.0 + v1.1 + v1.2 + v1.3)
+### Validated (v1.0 + v1.1 + v1.2 + v1.3 + v1.4)
 
 - Admin created from env vars on startup — v1.0
 - Email/password login with session persistence — v1.0
@@ -62,17 +65,15 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 - Media library storage indicator with progress bar and type breakdown — v1.3
 - System status indicators in header and login page — v1.3
 - Login page with Arsenal design, password toggle, remember me (30-day sessions) — v1.3
+- Unified health state (single source of truth, synchronized displays) — v1.4
+- Docker volume permissions (media uploads work without EACCES) — v1.4
+- Error boundaries (graceful degradation on API failures) — v1.4
+- Structured logging (JSON with request IDs, configurable levels) — v1.4
+- Health dashboard (memory metrics, uptime, system status) — v1.4
 
 ### Active
 
-**v1.4 Robustness & Observability**
-
-- [ ] Unified status indicators (single source of truth for health state)
-- [ ] Consistent health caching (synchronized across all components)
-- [ ] Docker volume permissions (fix media storage EACCES)
-- [ ] Endpoint consistency (same HTTP codes, response shapes)
-- [ ] Error boundaries (graceful degradation on failures)
-- [ ] Basic observability (structured logging, health dashboard)
+None — planning next milestone.
 
 ### Out of Scope
 
@@ -124,19 +125,17 @@ The content schema should be simple enough that an AI can generate a frontend fr
 | Dialog-to-drawer pattern | Native-feeling mobile experience | ✓ Good |
 | Card views for mobile tables | Better mobile data presentation than scrolling | ✓ Good |
 | Zustand for drawer state | Simple global state, already in use | ✓ Good |
+| queryOptions pattern for health | Type-safe reusable query config with single cache key | ✓ Good |
+| throwOnError for data, fallback for health | Health status never crashes the app | ✓ Good |
+| mkdir/chown before USER in Dockerfile | Named volumes inherit ownership on first mount | ✓ Good |
+| Pino-pretty only in development | Production gets structured JSON for log aggregation | ✓ Good |
+| 90% heap threshold for degraded status | Early warning before OOM errors | ✓ Good |
 
-## Current Milestone: v1.4 Robustness & Observability
+## Previous Milestone: v1.4 Robustness & Observability (shipped 2026-01-27)
 
-**Goal:** Fix reliability issues with status indicators, caching, and Docker permissions; add basic observability for debugging and monitoring.
+Fixed reliability issues with status indicators, caching, and Docker permissions; added basic observability for debugging and monitoring.
 
-**Target features:**
-- Unified health state management (single source of truth)
-- Synchronized status display across Header and Settings
-- Docker volume permission fix for media storage
-- Error boundaries for graceful degradation
-- Structured logging and health dashboard
-
-**Previous:** v1.3 Polish & Public API (shipped 2026-01-27)
+See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 
 ---
-*Last updated: 2026-01-27 after v1.4 milestone start*
+*Last updated: 2026-01-27 after v1.4 milestone completion*
