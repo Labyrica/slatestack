@@ -15,7 +15,7 @@ export function CollectionsPage() {
   const [editingCollection, setEditingCollection] = useState<Collection | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
 
-  const { data: collections, isLoading, error } = useCollections()
+  const { data: collections, isLoading } = useCollections()
   const deleteMutation = useDeleteCollection()
 
   const handleCreate = () => {
@@ -41,18 +41,6 @@ export function CollectionsPage() {
   const handleDialogClose = () => {
     setDialogOpen(false)
     setEditingCollection(null)
-  }
-
-  if (error) {
-    return (
-      <Shell title="Collections">
-        <div className="flex h-full items-center justify-center">
-          <Card className="p-6">
-            <p className="text-destructive">Failed to load collections</p>
-          </Card>
-        </div>
-      </Shell>
-    )
   }
 
   return (
