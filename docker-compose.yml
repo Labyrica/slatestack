@@ -2,6 +2,8 @@ services:
   db:
     image: postgres:15-alpine
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: ${DB_USER:-slatestack}
       POSTGRES_PASSWORD: ${DB_PASSWORD:-slatestack_dev}
@@ -44,6 +46,8 @@ services:
 volumes:
   postgres_data:
   uploads_data:
+    # NOTE: If you had EACCES errors before, delete this volume and recreate:
+    # docker-compose down -v && docker-compose up --build
 
 networks:
   app_network:
