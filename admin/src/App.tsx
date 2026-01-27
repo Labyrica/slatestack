@@ -1,6 +1,7 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { AdminRoute } from '@/components/auth/AdminRoute'
+import { SectionErrorBoundary } from '@/components/error/SectionErrorBoundary'
 import { LoginPage } from '@/features/auth'
 import { DashboardPage } from '@/features/dashboard'
 import { CollectionsPage } from '@/features/collections'
@@ -22,33 +23,59 @@ const router = createBrowserRouter(
       children: [
         {
           index: true,
-          element: <DashboardPage />,
+          element: (
+            <SectionErrorBoundary section="Dashboard">
+              <DashboardPage />
+            </SectionErrorBoundary>
+          ),
         },
         {
           path: 'collections',
-          element: <CollectionsPage />,
+          element: (
+            <SectionErrorBoundary section="Collections">
+              <CollectionsPage />
+            </SectionErrorBoundary>
+          ),
         },
         {
           path: 'collections/:collectionId/entries',
-          element: <EntriesPage />,
+          element: (
+            <SectionErrorBoundary section="Entries">
+              <EntriesPage />
+            </SectionErrorBoundary>
+          ),
         },
         {
           path: 'media',
-          element: <MediaPage />,
+          element: (
+            <SectionErrorBoundary section="Media">
+              <MediaPage />
+            </SectionErrorBoundary>
+          ),
         },
         {
           path: 'metrics',
-          element: <MetricsPage />,
+          element: (
+            <SectionErrorBoundary section="Metrics">
+              <MetricsPage />
+            </SectionErrorBoundary>
+          ),
         },
         {
           path: 'settings',
-          element: <SettingsPage />,
+          element: (
+            <SectionErrorBoundary section="Settings">
+              <SettingsPage />
+            </SectionErrorBoundary>
+          ),
         },
         {
           path: 'users',
           element: (
             <AdminRoute>
-              <UsersPage />
+              <SectionErrorBoundary section="Users">
+                <UsersPage />
+              </SectionErrorBoundary>
             </AdminRoute>
           ),
         },
