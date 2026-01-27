@@ -1,4 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { useHealth } from '@/hooks/use-health'
 import { useSystemInfo } from '@/hooks/use-system-info'
 import { Server } from 'lucide-react'
 
@@ -20,6 +21,7 @@ function formatUptime(seconds: number): string {
 
 export function SystemInfoSection({ session }: SystemInfoSectionProps) {
   const { data, isLoading } = useSystemInfo()
+  const { data: health, isLoading: isHealthLoading } = useHealth({ polling: false })
 
   // Only render for admins
   if (session.user.role !== 'admin') {
@@ -35,7 +37,7 @@ export function SystemInfoSection({ session }: SystemInfoSectionProps) {
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {isLoading ? (
+        {isLoading || isHealthLoading ? (
           <div className="space-y-3">
             <div className="h-5 w-24 animate-pulse rounded bg-muted" />
             <div className="h-5 w-32 animate-pulse rounded bg-muted" />
@@ -53,10 +55,10 @@ export function SystemInfoSection({ session }: SystemInfoSectionProps) {
               <div className="flex items-center gap-2">
                 <span
                   className={`h-2 w-2 rounded-full ${
-                    data?.database === 'connected' ? 'bg-green-500' : 'bg-red-500'
+                    health?.database === 'connected' ? 'bg-green-500' : 'bg-red-500'
                   }`}
                 />
-                <p className="font-medium capitalize">{data?.database}</p>
+                <p className="font-medium capitalize">{health?.database}</p>
               </div>
             </div>
             <div>
