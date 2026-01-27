@@ -15,7 +15,8 @@ export function SectionErrorBoundary({ children, section }: SectionErrorBoundary
           onReset={reset}
           FallbackComponent={ErrorFallback}
           onError={(error) => {
-            console.error(`[${section}]`, error.message)
+            const message = error instanceof Error ? error.message : String(error)
+            console.error(`[${section}]`, message)
           }}
         >
           {children}
