@@ -51,6 +51,7 @@ export function useEntries(collectionId: string, params?: UseEntriesParams) {
     queryKey: entryKeys.list(collectionId, params as Record<string, unknown>),
     queryFn: () => fetcher<PaginatedEntriesResponse>(url),
     enabled: !!collectionId,
+    throwOnError: true,
   })
 }
 
@@ -61,6 +62,7 @@ export function useEntry(collectionId: string, entryId: string) {
     queryFn: () =>
       fetcher<Entry>(`/admin/collections/${collectionId}/entries/${entryId}`),
     enabled: !!collectionId && !!entryId,
+    throwOnError: true,
   })
 }
 

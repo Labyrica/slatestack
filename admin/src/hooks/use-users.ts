@@ -21,6 +21,7 @@ export function useUsers() {
   return useQuery({
     queryKey: ['users'],
     queryFn: () => fetcher<User[]>('/admin/users'),
+    throwOnError: true,
   })
 }
 

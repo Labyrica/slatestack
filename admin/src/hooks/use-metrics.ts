@@ -30,6 +30,7 @@ export function useMetricsSummary() {
   return useQuery({
     queryKey: ['metrics', 'summary'],
     queryFn: () => fetcher<MetricsSummary>('/admin/metrics/summary'),
+    throwOnError: true,
   })
 }
 
@@ -44,6 +45,7 @@ export function useTopPages(options: UseTopPagesOptions = {}) {
   return useQuery({
     queryKey: ['metrics', 'top-pages', days, limit],
     queryFn: () => fetcher<TopPagesResponse>(`/admin/metrics/top-pages?days=${days}&limit=${limit}`),
+    throwOnError: true,
   })
 }
 
@@ -57,5 +59,6 @@ export function useMetricsTrend(options: UseMetricsTrendOptions = {}) {
   return useQuery({
     queryKey: ['metrics', 'trend', days],
     queryFn: () => fetcher<TrendResponse>(`/admin/metrics/trend?days=${days}`),
+    throwOnError: true,
   })
 }

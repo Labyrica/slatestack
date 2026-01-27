@@ -20,6 +20,7 @@ export function useCollections() {
   return useQuery({
     queryKey: collectionKeys.list(),
     queryFn: () => fetcher<Collection[]>('/admin/collections'),
+    throwOnError: true,
   })
 }
 
@@ -29,6 +30,7 @@ export function useCollection(id: string) {
     queryKey: collectionKeys.detail(id),
     queryFn: () => fetcher<Collection>(`/admin/collections/${id}`),
     enabled: !!id,
+    throwOnError: true,
   })
 }
 
