@@ -4,6 +4,8 @@ import { ProfileSection } from './ProfileSection'
 import { PasswordSection } from './PasswordSection'
 import { SystemInfoSection } from './SystemInfoSection'
 import { PresetSelector } from './PresetSelector'
+import { SettingSection } from './SettingSection'
+import { User, Lock, Palette, Activity } from 'lucide-react'
 
 export function SettingsPage() {
   const { data: session } = useSession()
@@ -16,43 +18,29 @@ export function SettingsPage() {
 
   return (
     <Shell title="Settings">
-      <div>
+      <div className="max-w-4xl">
         <h1 className="text-2xl font-bold">Settings</h1>
         <p className="mt-2 text-muted-foreground">
           Manage your account and preferences
         </p>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
-          {/* Left column: Profile and Password */}
-          <div className="space-y-6">
-            <div
-              className="animate-slide-up opacity-0"
-              style={{ animationDelay: '500ms' }}
-            >
-              <ProfileSection session={session as any} />
-            </div>
-            <div
-              className="animate-slide-up opacity-0"
-              style={{ animationDelay: '620ms' }}
-            >
-              <PasswordSection />
-            </div>
-            <div
-              className="animate-slide-up opacity-0"
-              style={{ animationDelay: '740ms' }}
-            >
-              <PresetSelector />
-            </div>
-          </div>
+        <div className="mt-8 space-y-6">
+          <SettingSection id="profile" title="Profile" icon={<User className="h-5 w-5" />}>
+            <ProfileSection session={session as any} />
+          </SettingSection>
 
-          {/* Right column: System Info (admin only) */}
+          <SettingSection id="password" title="Password" icon={<Lock className="h-5 w-5" />}>
+            <PasswordSection />
+          </SettingSection>
+
+          <SettingSection id="theme" title="Theme" icon={<Palette className="h-5 w-5" />}>
+            <PresetSelector />
+          </SettingSection>
+
           {isAdmin && (
-            <div
-              className="animate-slide-up opacity-0"
-              style={{ animationDelay: '500ms' }}
-            >
+            <SettingSection id="system" title="System Health" icon={<Activity className="h-5 w-5" />} defaultOpen={true}>
               <SystemInfoSection session={session as any} />
-            </div>
+            </SettingSection>
           )}
         </div>
       </div>
