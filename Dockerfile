@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY tsconfig.json drizzle.config.ts ./
+COPY version.json ./
 COPY src ./src
 RUN npm run build
 
@@ -24,6 +25,7 @@ COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=admin-builder --chown=nodejs:nodejs /app/dist ./admin/dist
 COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs drizzle.config.ts ./
+COPY --chown=nodejs:nodejs version.json ./
 
 # Create uploads directory with correct ownership BEFORE switching users
 # Named volumes will inherit this ownership when first mounted
