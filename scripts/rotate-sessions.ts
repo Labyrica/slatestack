@@ -14,6 +14,7 @@
  *   await rotateAllSessions();
  */
 
+import "dotenv/config";
 import { db } from "../src/shared/database/index.js";
 import { session } from "../src/shared/database/schema.js";
 import { sql } from "drizzle-orm";
@@ -29,7 +30,7 @@ export async function rotateAllSessions(): Promise<{
   const beforeResult = await db.execute<{ count: string }>(
     sql`SELECT COUNT(*) as count FROM ${session}`
   );
-  const beforeCount = parseInt(beforeResult.rows[0]?.count || "0", 10);
+  const beforeCount = parseInt(beforeResult?.[0]?.count || "0", 10);
   console.log(`📊 Sessions before deletion: ${beforeCount}`);
 
   if (beforeCount === 0) {
@@ -45,7 +46,7 @@ export async function rotateAllSessions(): Promise<{
   const afterResult = await db.execute<{ count: string }>(
     sql`SELECT COUNT(*) as count FROM ${session}`
   );
-  const afterCount = parseInt(afterResult.rows[0]?.count || "0", 10);
+  const afterCount = parseInt(afterResult?.[0]?.count || "0", 10);
   const deleted = beforeCount - afterCount;
 
   console.log(`📊 Sessions after deletion: ${afterCount}`);
@@ -62,8 +63,9 @@ export async function rotateAllSessions(): Promise<{
   return { beforeCount, afterCount, deleted };
 }
 
-// Run if executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run if executed directly (check if this is the main module)
+const isMainModule = process.argv[1] && process.argv[1].includes('rotate-sessions');
+if (isMainModule) {
   rotateAllSessions()
     .then((result) => {
       console.log("\n📋 Summary:");
