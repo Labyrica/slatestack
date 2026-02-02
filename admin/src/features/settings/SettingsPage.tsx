@@ -19,37 +19,38 @@ export function SettingsPage() {
 
   return (
     <Shell title="Settings">
-      <div className="max-w-4xl">
-        <h1 className="text-2xl font-bold">Settings</h1>
-        <p className="mt-2 text-muted-foreground">
-          Manage your account and preferences
-        </p>
-
-        <div className="mt-8 space-y-6">
-          <SettingSection id="profile" title="Profile" icon={<User className="h-5 w-5" />}>
-            <ProfileSection session={session as any} />
-          </SettingSection>
-
-          <SettingSection id="password" title="Password" icon={<Lock className="h-5 w-5" />}>
-            <PasswordSection />
-          </SettingSection>
-
-          <SettingSection id="theme" title="Theme" icon={<Palette className="h-5 w-5" />}>
-            <PresetSelector />
-          </SettingSection>
-
-          {isAdmin && (
-            <>
-              <SettingSection id="system" title="System Health" icon={<Activity className="h-5 w-5" />} defaultOpen={true}>
-                <SystemInfoSection session={session as any} />
-              </SettingSection>
-
-              <SettingSection id="update" title="Updates" icon={<Download className="h-5 w-5" />}>
-                <UpdateSection />
-              </SettingSection>
-            </>
-          )}
+      <div className="space-y-6">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold">Settings</h1>
+          <p className="mt-1 text-muted-foreground">
+            Manage your account and preferences
+          </p>
         </div>
+
+        <SettingSection id="profile" title="Profile" icon={<User className="h-5 w-5" />}>
+          <ProfileSection session={session as any} />
+        </SettingSection>
+
+        <SettingSection id="password" title="Password" icon={<Lock className="h-5 w-5" />}>
+          <PasswordSection />
+        </SettingSection>
+
+        <SettingSection id="theme" title="Theme" icon={<Palette className="h-5 w-5" />}>
+          <PresetSelector />
+        </SettingSection>
+
+        {isAdmin && (
+          <>
+            <SettingSection id="system" title="System Health" icon={<Activity className="h-5 w-5" />} defaultOpen={true}>
+              <SystemInfoSection session={session as any} />
+            </SettingSection>
+
+            <SettingSection id="update" title="Updates" icon={<Download className="h-5 w-5" />}>
+              <UpdateSection />
+            </SettingSection>
+          </>
+        )}
       </div>
     </Shell>
   )
