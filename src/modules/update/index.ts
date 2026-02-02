@@ -1,3 +1,6 @@
+// Export routes
+export { updateRoutes } from './update.routes.js';
+
 // Export types
 export * from './update.types.js';
 
@@ -6,5 +9,3 @@ export * from './update.schemas.js';
 
 // Export service functions
 export * from './update.service.js';
-
-// Note: updateRoutes will be added in Plan 02 when routes are created
