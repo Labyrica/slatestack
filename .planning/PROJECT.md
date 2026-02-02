@@ -73,7 +73,10 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 
 ### Active
 
-None — planning next milestone.
+- [ ] Self-update system (pull upstream changes without affecting custom code)
+- [ ] Settings page layout redesign (fix visual hierarchy)
+- [ ] Repository cleanup (remove test artifacts, sensitive files)
+- [ ] UX friction audit and fixes
 
 ### Out of Scope
 
@@ -131,6 +134,16 @@ The content schema should be simple enough that an AI can generate a frontend fr
 | Pino-pretty only in development | Production gets structured JSON for log aggregation | ✓ Good |
 | 90% heap threshold for degraded status | Early warning before OOM errors | ✓ Good |
 
+## Current Milestone: v1.5 Production Polish
+
+**Goal:** Self-update capability, Settings UX improvements, repository cleanup, and friction audit.
+
+**Target features:**
+- Self-update system that pulls from upstream Slatestack repo without affecting custom frontend code
+- Settings page redesign with better visual hierarchy
+- Repository cleanup (remove test artifacts, sensitive cookie files, debug JSON)
+- UX audit to identify and fix friction points
+
 ## Previous Milestone: v1.4 Robustness & Observability (shipped 2026-01-27)
 
 Fixed reliability issues with status indicators, caching, and Docker permissions; added basic observability for debugging and monitoring.
@@ -138,4 +151,4 @@ Fixed reliability issues with status indicators, caching, and Docker permissions
 See `.planning/milestones/v1.4-ROADMAP.md` for full details.
 
 ---
-*Last updated: 2026-01-27 after v1.4 milestone completion*
+*Last updated: 2026-02-02 after v1.5 milestone start*
