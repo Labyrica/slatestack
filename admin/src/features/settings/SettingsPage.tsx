@@ -3,9 +3,10 @@ import { useSession } from '@/lib/auth'
 import { ProfileSection } from './ProfileSection'
 import { PasswordSection } from './PasswordSection'
 import { SystemInfoSection } from './SystemInfoSection'
+import { UpdateSection } from './UpdateSection'
 import { PresetSelector } from './PresetSelector'
 import { SettingSection } from './SettingSection'
-import { User, Lock, Palette, Activity } from 'lucide-react'
+import { User, Lock, Palette, Activity, Download } from 'lucide-react'
 
 export function SettingsPage() {
   const { data: session } = useSession()
@@ -38,9 +39,15 @@ export function SettingsPage() {
           </SettingSection>
 
           {isAdmin && (
-            <SettingSection id="system" title="System Health" icon={<Activity className="h-5 w-5" />} defaultOpen={true}>
-              <SystemInfoSection session={session as any} />
-            </SettingSection>
+            <>
+              <SettingSection id="system" title="System Health" icon={<Activity className="h-5 w-5" />} defaultOpen={true}>
+                <SystemInfoSection session={session as any} />
+              </SettingSection>
+
+              <SettingSection id="update" title="Updates" icon={<Download className="h-5 w-5" />}>
+                <UpdateSection />
+              </SettingSection>
+            </>
           )}
         </div>
       </div>
