@@ -11,17 +11,14 @@ interface ShellProps {
 
 export function Shell({ children, title }: ShellProps) {
   return (
-    <div className="flex min-h-screen flex-col">
-      {/* Global update banner - shows when update available */}
+    <div className="flex h-screen flex-col overflow-hidden">
       <UpdateBanner />
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Desktop sidebar - hidden below 768px */}
         <div className="hidden md:block">
           <Sidebar />
         </div>
 
-        {/* Mobile drawer - controlled by Sheet (portal renders at root) */}
         <MobileDrawer />
 
         <div className="flex flex-1 flex-col overflow-hidden">

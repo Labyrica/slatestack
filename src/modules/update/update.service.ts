@@ -43,6 +43,26 @@ export function getCurrentVersion(): string {
 }
 
 /**
+ * Build GitHub API headers with optional authentication.
+ * If GITHUB_TOKEN is set, includes Authorization header for private repos.
+ */
+function getGitHubHeaders(): HeadersInit {
+  const headers: HeadersInit = {
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+    'User-Agent': 'Slatestack-Update-Checker',
+  };
+
+  // Add auth token if available (required for private repos)
+  const token = process.env.GITHUB_TOKEN;
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  return headers;
+}
+
+/**
  * Fetch latest release from GitHub API with caching
  */
 async function fetchLatestRelease(): Promise<GitHubRelease> {
@@ -53,21 +73,19 @@ async function fetchLatestRelease(): Promise<GitHubRelease> {
 
   const response = await fetch(
     `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest`,
-    {
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': 'Slatestack-Update-Checker'
-      }
-    }
+    { headers: getGitHubHeaders() }
   );
 
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error('No releases found in upstream repository');
+      // 404 means either no releases exist or repo is private
+      throw new Error('No releases found in repository.');
     }
     if (response.status === 403) {
       throw new Error('GitHub API rate limit exceeded. Try again later.');
+    }
+    if (response.status === 401) {
+      throw new Error('Invalid GITHUB_TOKEN. Check your token has repo read access.');
     }
     throw new Error(`GitHub API error: ${response.status}`);
   }
@@ -82,14 +100,38 @@ async function fetchLatestRelease(): Promise<GitHubRelease> {
  */
 export async function checkForUpdates(): Promise<UpdateCheckResult> {
   const currentVersion = getCurrentVersion();
-  const release = await fetchLatestRelease();
+  const current = semver.clean(currentVersion);
+
+  if (!current) {
+    throw new Error(`Invalid current version format: ${currentVersion}`);
+  }
+
+  // Try to fetch latest release - handle "no releases" gracefully
+  let release: GitHubRelease;
+  try {
+    release = await fetchLatestRelease();
+  } catch (error) {
+    const err = error as Error;
+    // If no releases exist, return current version with no update available
+    if (err.message.includes('No releases found')) {
+      return {
+        currentVersion: current,
+        latestVersion: current,
+        updateAvailable: false,
+        versionDiff: null,
+        releaseUrl: `https://github.com/${REPO_OWNER}/${REPO_NAME}/releases`,
+        publishedAt: new Date().toISOString(),
+      };
+    }
+    // Re-throw other errors (private repo, rate limit, etc.)
+    throw error;
+  }
 
   // Clean version strings (remove 'v' prefix if present)
-  const current = semver.clean(currentVersion);
   const latest = semver.clean(release.tag_name);
 
-  if (!current || !latest) {
-    throw new Error(`Invalid version format: current=${currentVersion}, latest=${release.tag_name}`);
+  if (!latest) {
+    throw new Error(`Invalid release version format: ${release.tag_name}`);
   }
 
   const updateAvailable = semver.gt(latest, current);
@@ -121,18 +163,19 @@ export async function checkForUpdates(): Promise<UpdateCheckResult> {
 export async function getChangelog(): Promise<ChangelogResult> {
   const response = await fetch(
     `${GITHUB_API}/repos/${REPO_OWNER}/${REPO_NAME}/releases?per_page=10`,
-    {
-      headers: {
-        'Accept': 'application/vnd.github+json',
-        'X-GitHub-Api-Version': '2022-11-28',
-        'User-Agent': 'Slatestack-Update-Checker'
-      }
-    }
+    { headers: getGitHubHeaders() }
   );
 
   if (!response.ok) {
     if (response.status === 403) {
       throw new Error('GitHub API rate limit exceeded. Try again later.');
+    }
+    if (response.status === 404) {
+      const hasToken = !!process.env.GITHUB_TOKEN;
+      if (!hasToken) {
+        throw new Error('Repository is private. Set GITHUB_TOKEN to enable changelog.');
+      }
+      throw new Error('No releases found.');
     }
     throw new Error(`GitHub API error: ${response.status}`);
   }
