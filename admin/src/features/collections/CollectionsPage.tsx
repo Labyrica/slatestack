@@ -86,7 +86,7 @@ export function CollectionsPage() {
         {!isLoading && collections && collections.length > 0 && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {collections.map((collection) => (
-              <Card key={collection.id} className="p-6">
+              <Card key={collection.id} className="p-6 transition-shadow hover:shadow-md">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold">{collection.name}</h3>
