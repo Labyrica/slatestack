@@ -1,9 +1,11 @@
-import { useUpdateCheck, UpdateCheckResult } from '@/hooks/use-update-check'
-import { useQuery } from '@tanstack/react-query'
-import { fetcher } from '@/lib/api'
+import { useState } from 'react'
+import { useUpdateCheck } from '@/hooks/use-update-check'
+import { useQuery, useMutation } from '@tanstack/react-query'
+import { fetcher, executeUpdate } from '@/lib/api'
+import type { UpdateExecuteResult } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
-import { buttonVariants } from '@/components/ui/button'
-import { ExternalLink } from 'lucide-react'
+import { Button, buttonVariants } from '@/components/ui/button'
+import { ExternalLink, RefreshCw, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
 
 interface ChangelogResult {
   releases: Array<{
@@ -15,7 +17,24 @@ interface ChangelogResult {
   }>
 }
 
+type UpdateStatus = 'idle' | 'starting' | 'backup' | 'merge' | 'migrate' | 'restart' | 'health' | 'complete' | 'error'
+
+const statusMessages: Record<UpdateStatus, string> = {
+  idle: '',
+  starting: 'Starting update...',
+  backup: 'Creating backup...',
+  merge: 'Merging changes...',
+  migrate: 'Running migrations...',
+  restart: 'Restarting server...',
+  health: 'Checking health...',
+  complete: 'Update complete!',
+  error: 'Update failed'
+}
+
 export function UpdateSection() {
+  const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle')
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
   const { data: update, isLoading: checkLoading } = useUpdateCheck()
 
   const { data: changelog } = useQuery({
@@ -24,6 +43,40 @@ export function UpdateSection() {
     enabled: !!update?.updateAvailable,
     staleTime: 5 * 60 * 1000,
   })
+
+  const updateMutation = useMutation({
+    mutationFn: executeUpdate,
+    onMutate: () => {
+      setUpdateStatus('starting')
+      setErrorMessage(null)
+    },
+    onSuccess: (data: UpdateExecuteResult) => {
+      setUpdateStatus(data.phase)
+
+      if (!data.success) {
+        setUpdateStatus('error')
+        setErrorMessage(data.error || 'Update failed')
+        return
+      }
+
+      if (data.phase === 'restart' || data.phase === 'complete') {
+        // Server is restarting, schedule a page reload
+        setTimeout(() => {
+          window.location.reload()
+        }, 3000)
+      }
+    },
+    onError: (error: Error) => {
+      setUpdateStatus('error')
+      setErrorMessage(error.message)
+    }
+  })
+
+  const handleUpdateClick = () => {
+    if (window.confirm('This will update Slatestack to the latest version. A backup will be created first. Continue?')) {
+      updateMutation.mutate()
+    }
+  }
 
   if (checkLoading) {
     return <div className="animate-pulse h-24 bg-muted rounded" />
@@ -35,6 +88,8 @@ export function UpdateSection() {
       ? latestRelease.body.slice(0, 500) + '...'
       : latestRelease.body
     : null
+
+  const isUpdating = updateStatus !== 'idle' && updateStatus !== 'complete' && updateStatus !== 'error'
 
   return (
     <div className="space-y-4">
@@ -49,17 +104,64 @@ export function UpdateSection() {
       </div>
 
       {/* Update action */}
-      {update?.updateAvailable && update.releaseUrl && (
-        <div>
-          <a
-            href={update.releaseUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={buttonVariants({ variant: 'outline', size: 'sm' })}
+      {update?.updateAvailable && (
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={handleUpdateClick}
+            disabled={isUpdating}
+            size="sm"
           >
-            <ExternalLink className="mr-2 h-4 w-4" />
-            View on GitHub
-          </a>
+            {isUpdating ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Updating...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Update Now
+              </>
+            )}
+          </Button>
+          {update.releaseUrl && (
+            <a
+              href={update.releaseUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: 'outline', size: 'sm' })}
+            >
+              <ExternalLink className="mr-2 h-4 w-4" />
+              View on GitHub
+            </a>
+          )}
+        </div>
+      )}
+
+      {/* Update status feedback */}
+      {updateStatus !== 'idle' && (
+        <div className={`p-4 rounded flex items-center gap-3 ${
+          updateStatus === 'error'
+            ? 'bg-destructive/10 text-destructive'
+            : updateStatus === 'complete'
+            ? 'bg-success/10 text-success'
+            : 'bg-muted/50'
+        }`}>
+          {updateStatus === 'error' ? (
+            <XCircle className="h-5 w-5 flex-shrink-0" />
+          ) : updateStatus === 'complete' ? (
+            <CheckCircle2 className="h-5 w-5 flex-shrink-0" />
+          ) : (
+            <Loader2 className="h-5 w-5 flex-shrink-0 animate-spin" />
+          )}
+          <div>
+            <p className="font-medium">{statusMessages[updateStatus]}</p>
+            {errorMessage && (
+              <p className="text-sm mt-1">{errorMessage}</p>
+            )}
+            {updateStatus === 'restart' && (
+              <p className="text-sm text-muted-foreground mt-1">Page will reload automatically...</p>
+            )}
+          </div>
         </div>
       )}
 

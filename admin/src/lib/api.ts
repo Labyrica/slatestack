@@ -35,6 +35,35 @@ export const queryClient = new QueryClient({
   }),
 })
 
+export interface UpdateExecuteResult {
+  success: boolean;
+  phase: 'backup' | 'merge' | 'migrate' | 'restart' | 'health' | 'complete';
+  error?: string;
+  backupPaths?: {
+    database: string;
+    uploads: string;
+  };
+  previousVersion: string;
+  newVersion?: string;
+  message?: string;
+}
+
+export async function executeUpdate(): Promise<UpdateExecuteResult> {
+  const response = await fetch('/api/admin/update/execute', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Update failed: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export async function fetcher<T>(
   endpoint: string,
   options?: RequestInit
