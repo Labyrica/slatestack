@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import { requireRole } from '../auth/auth.service.js';
 import * as updateService from './update.service.js';
-import { UpdateCheckResponse, ChangelogResponse, ConflictCheckResponse } from './update.schemas.js';
+import { UpdateCheckResponse, ChangelogResponse, ConflictCheckResponse, UpdateExecuteResponse } from './update.schemas.js';
 
 export const updateRoutes: FastifyPluginAsync = async (fastify) => {
   // GET /api/admin/update/check - Check for available updates
@@ -45,6 +45,46 @@ export const updateRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const result = await updateService.checkConflicts();
+      return reply.send(result);
+    }
+  );
+
+  // POST /api/admin/update/execute - Execute update with backup
+  fastify.post(
+    '/api/admin/update/execute',
+    {
+      preHandler: [requireRole('admin')],
+      schema: {
+        response: { 200: UpdateExecuteResponse }
+      }
+    },
+    async (request, reply) => {
+      // Check for updates first
+      const updateCheck = await updateService.checkForUpdates();
+
+      if (!updateCheck.updateAvailable) {
+        return reply.send({
+          success: false,
+          phase: 'complete' as const,
+          previousVersion: updateCheck.currentVersion,
+          message: 'Already up to date'
+        });
+      }
+
+      // Check for conflicts
+      const conflictCheck = await updateService.checkConflicts();
+
+      if (conflictCheck.hasConflicts) {
+        return reply.send({
+          success: false,
+          phase: 'merge' as const,
+          previousVersion: updateCheck.currentVersion,
+          error: `Conflicts detected in ${conflictCheck.conflicts.length} files. Manual resolution required.`
+        });
+      }
+
+      // Execute update
+      const result = await updateService.executeUpdate(fastify);
       return reply.send(result);
     }
   );
