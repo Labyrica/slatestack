@@ -38,3 +38,25 @@ export const ChangelogResponse = Type.Object({
 });
 
 export type ChangelogResponseType = Static<typeof ChangelogResponse>;
+
+export const UpdateExecuteResponse = Type.Object({
+  success: Type.Boolean(),
+  phase: Type.Union([
+    Type.Literal('backup'),
+    Type.Literal('merge'),
+    Type.Literal('migrate'),
+    Type.Literal('restart'),
+    Type.Literal('health'),
+    Type.Literal('complete'),
+  ]),
+  error: Type.Optional(Type.String()),
+  backupPaths: Type.Optional(Type.Object({
+    database: Type.String(),
+    uploads: Type.String(),
+  })),
+  previousVersion: Type.String(),
+  newVersion: Type.Optional(Type.String()),
+  message: Type.Optional(Type.String()),
+});
+
+export type UpdateExecuteResponseType = Static<typeof UpdateExecuteResponse>;
