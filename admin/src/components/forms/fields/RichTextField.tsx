@@ -5,7 +5,7 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import type { FieldDefinition } from '@/types/collection'
-import { Bold, Italic, List, ListOrdered, Heading2, Heading3 } from 'lucide-react'
+import { Bold, Italic, List, ListOrdered, Heading2, Heading3, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 interface RichTextFieldProps {
@@ -123,7 +123,12 @@ export function RichTextField({ field, control, error }: RichTextFieldProps) {
           )
         }}
       />
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="text-sm text-destructive flex items-center gap-1.5 mt-1">
+          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
     </div>
   )
 }

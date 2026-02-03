@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import type { FieldDefinition } from '@/types/collection'
 import { MediaPickerDialog } from '@/features/media/MediaPickerDialog'
 import type { MediaFile } from '@/types/media'
-import { Image, X, Loader2 } from 'lucide-react'
+import { Image, X, Loader2, AlertCircle } from 'lucide-react'
 import { fetcher } from '@/lib/api'
 
 interface MediaFieldProps {
@@ -109,7 +109,12 @@ export function MediaField({ field, control, error }: MediaFieldProps) {
           )
         }}
       />
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="text-sm text-destructive flex items-center gap-1.5 mt-1">
+          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
     </div>
   )
 }
