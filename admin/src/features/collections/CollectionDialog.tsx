@@ -13,6 +13,7 @@ import { SchemaBuilder } from './SchemaBuilder'
 import { useCreateCollection, useUpdateCollection } from '@/hooks/use-collections'
 import type { Collection, FieldDefinition } from '@/types/collection'
 import { toast } from 'sonner'
+import { Loader2, Save } from 'lucide-react'
 
 interface CollectionDialogProps {
   open: boolean
@@ -207,13 +208,17 @@ export function CollectionDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending
-                ? isEdit
-                  ? 'Updating...'
-                  : 'Creating...'
-                : isEdit
-                  ? 'Update Collection'
-                  : 'Create Collection'}
+              {isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  {isEdit ? 'Updating...' : 'Creating...'}
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  {isEdit ? 'Update Collection' : 'Create Collection'}
+                </>
+              )}
             </Button>
           </ResponsiveDialogFooter>
         </form>

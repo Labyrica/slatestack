@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { useCreateUser } from '@/hooks/use-users'
+import { Loader2, UserPlus } from 'lucide-react'
 
 interface CreateUserDialogProps {
   open: boolean
@@ -111,7 +112,17 @@ export function CreateUserDialog({ open, onOpenChange }: CreateUserDialogProps) 
               Cancel
             </Button>
             <Button type="submit" disabled={createUser.isPending}>
-              {createUser.isPending ? 'Creating...' : 'Create User'}
+              {createUser.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Create User
+                </>
+              )}
             </Button>
           </ResponsiveDialogFooter>
         </form>
