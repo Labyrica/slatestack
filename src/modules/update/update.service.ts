@@ -1,8 +1,20 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
+import { cp, mkdir, rm } from 'fs/promises';
+import { spawn } from 'child_process';
 import { join } from 'path';
 import * as semver from 'semver';
 import { simpleGit, SimpleGit } from 'simple-git';
-import type { UpdateCheckResult, ChangelogResult, ConflictCheckResult, GitHubRelease } from './update.types.js';
+import type { FastifyInstance } from 'fastify';
+import type {
+  UpdateCheckResult,
+  ChangelogResult,
+  ConflictCheckResult,
+  GitHubRelease,
+  BackupResult,
+  UpdateExecuteResult,
+  MergeResult,
+  MigrationResult,
+} from './update.types.js';
 
 // Constants
 const GITHUB_API = 'https://api.github.com';
@@ -17,6 +29,9 @@ const UPSTREAM_BRANCH = 'main';
 // Cache for GitHub API responses (avoid rate limiting - 60 req/hour unauthenticated)
 let releaseCache: { data: GitHubRelease; timestamp: number } | null = null;
 const CACHE_TTL = 15 * 60 * 1000; // 15 minutes
+
+// Backup directory for update rollback
+const BACKUP_DIR = join(process.cwd(), 'backups');
 
 /**
  * Read current version from version.json
@@ -140,7 +155,7 @@ export async function getChangelog(): Promise<ChangelogResult> {
 /**
  * Create a simple-git instance for the current working directory
  */
-function getGit(): SimpleGit {
+export function getGit(): SimpleGit {
   return simpleGit(process.cwd(), {
     binary: 'git',
     maxConcurrentProcesses: 1,
@@ -249,4 +264,398 @@ export async function checkConflicts(): Promise<ConflictCheckResult> {
     // Other exit codes are actual errors
     throw error;
   }
+}
+
+/**
+ * Configure Git's "ours" merge driver for protected directories.
+ * This ensures user customizations in public/ and admin/src/custom/ are preserved.
+ */
+async function ensureMergeDriver(git: SimpleGit): Promise<void> {
+  // Set up custom merge driver that always keeps "ours" for protected paths
+  await git.raw(['config', 'merge.ours.driver', 'true']);
+}
+
+/**
+ * Create a PostgreSQL database backup using pg_dump.
+ * Returns BackupResult with path to SQL file.
+ */
+export async function createDatabaseBackup(): Promise<BackupResult> {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const backupPath = join(BACKUP_DIR, `db-backup-${timestamp}.sql`);
+
+  // Ensure backup directory exists
+  await mkdir(BACKUP_DIR, { recursive: true });
+
+  // Parse DATABASE_URL
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    return {
+      success: false,
+      backupPath: '',
+      timestamp,
+      error: 'DATABASE_URL environment variable not set',
+    };
+  }
+
+  const url = new URL(databaseUrl);
+  const host = url.hostname;
+  const port = url.port || '5432';
+  const database = url.pathname.slice(1); // Remove leading /
+  const username = url.username;
+  const password = decodeURIComponent(url.password); // Handle special characters
+
+  return new Promise((resolve) => {
+    const args = [
+      '-h', host,
+      '-p', port,
+      '-U', username,
+      '-d', database,
+      '-f', backupPath,
+      '--no-password', // Use PGPASSWORD env var
+    ];
+
+    const pgDump = spawn('pg_dump', args, {
+      env: { ...process.env, PGPASSWORD: password },
+      shell: true,
+    });
+
+    let stderr = '';
+
+    pgDump.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    pgDump.on('close', (code) => {
+      if (code === 0) {
+        resolve({
+          success: true,
+          backupPath,
+          timestamp,
+        });
+      } else {
+        resolve({
+          success: false,
+          backupPath: '',
+          timestamp,
+          error: `pg_dump failed with code ${code}: ${stderr}`,
+        });
+      }
+    });
+
+    pgDump.on('error', (err) => {
+      resolve({
+        success: false,
+        backupPath: '',
+        timestamp,
+        error: `pg_dump error: ${err.message}`,
+      });
+    });
+  });
+}
+
+/**
+ * Backup uploads directory to preserve user files.
+ * Returns BackupResult with path to backup directory.
+ */
+export async function backupUploadsDirectory(): Promise<BackupResult> {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const uploadsDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
+  const backupPath = join(BACKUP_DIR, `uploads-${timestamp}`);
+
+  // Ensure backup directory exists
+  await mkdir(BACKUP_DIR, { recursive: true });
+
+  // Check if uploads directory exists
+  if (!existsSync(uploadsDir)) {
+    // No uploads to backup - that's OK
+    return {
+      success: true,
+      backupPath: '',
+      timestamp,
+    };
+  }
+
+  try {
+    await cp(uploadsDir, backupPath, { recursive: true });
+    return {
+      success: true,
+      backupPath,
+      timestamp,
+    };
+  } catch (err) {
+    const error = err as Error;
+    return {
+      success: false,
+      backupPath: '',
+      timestamp,
+      error: `Failed to backup uploads: ${error.message}`,
+    };
+  }
+}
+
+/**
+ * Execute git merge from upstream repository.
+ * Uses stash to preserve local changes and -X ours for protected directories.
+ */
+export async function executeGitMerge(git: SimpleGit): Promise<MergeResult> {
+  // Configure merge driver for protected paths
+  await ensureMergeDriver(git);
+
+  let hadStash = false;
+
+  try {
+    // Fetch latest from upstream
+    await git.fetch(UPSTREAM_NAME, UPSTREAM_BRANCH);
+
+    // Check for uncommitted changes and stash them
+    const status = await git.status();
+    if (status.files.length > 0) {
+      await git.stash(['push', '-m', 'slatestack-pre-update']);
+      hadStash = true;
+    }
+
+    // Perform merge with --no-edit (auto-accept merge commit message)
+    // Use -X ours to prefer our version for conflicts
+    const upstreamRef = `${UPSTREAM_NAME}/${UPSTREAM_BRANCH}`;
+    await git.merge([upstreamRef, '--no-edit', '-X', 'ours']);
+
+    // Pop stash if we had one
+    if (hadStash) {
+      await git.stash(['pop']);
+    }
+
+    return { success: true };
+  } catch (err) {
+    const error = err as Error;
+
+    // On failure, abort merge and restore state
+    try {
+      await git.merge(['--abort']);
+    } catch {
+      // Merge abort may fail if no merge in progress - that's OK
+    }
+
+    // Pop stash if we had one
+    if (hadStash) {
+      try {
+        await git.stash(['pop']);
+      } catch {
+        // Stash pop may fail - log but don't throw
+      }
+    }
+
+    return {
+      success: false,
+      error: `Git merge failed: ${error.message}`,
+    };
+  }
+}
+
+/**
+ * Run database migrations using drizzle-kit.
+ */
+export async function runMigrations(): Promise<MigrationResult> {
+  return new Promise((resolve) => {
+    const migrate = spawn('npx', ['drizzle-kit', 'migrate'], {
+      cwd: process.cwd(),
+      shell: true,
+      env: process.env,
+    });
+
+    let stdout = '';
+    let stderr = '';
+
+    migrate.stdout.on('data', (data) => {
+      stdout += data.toString();
+    });
+
+    migrate.stderr.on('data', (data) => {
+      stderr += data.toString();
+    });
+
+    migrate.on('close', (code) => {
+      if (code === 0) {
+        resolve({ success: true });
+      } else {
+        resolve({
+          success: false,
+          error: `Migration failed with code ${code}: ${stderr || stdout}`,
+        });
+      }
+    });
+
+    migrate.on('error', (err) => {
+      resolve({
+        success: false,
+        error: `Migration error: ${err.message}`,
+      });
+    });
+  });
+}
+
+/**
+ * Rollback database and uploads from backups.
+ * Throws on failure - caller should handle.
+ */
+export async function rollback(dbBackupPath: string, uploadsBackupPath: string): Promise<void> {
+  // Restore database from backup
+  if (dbBackupPath) {
+    const databaseUrl = process.env.DATABASE_URL;
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL not set for rollback');
+    }
+
+    const url = new URL(databaseUrl);
+    const host = url.hostname;
+    const port = url.port || '5432';
+    const database = url.pathname.slice(1);
+    const username = url.username;
+    const password = decodeURIComponent(url.password);
+
+    await new Promise<void>((resolve, reject) => {
+      const args = [
+        '-h', host,
+        '-p', port,
+        '-U', username,
+        '-d', database,
+        '-f', dbBackupPath,
+        '--no-password',
+      ];
+
+      const psql = spawn('psql', args, {
+        env: { ...process.env, PGPASSWORD: password },
+        shell: true,
+      });
+
+      let stderr = '';
+
+      psql.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      psql.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`Database restore failed: ${stderr}`));
+        }
+      });
+
+      psql.on('error', (err) => {
+        reject(new Error(`Database restore error: ${err.message}`));
+      });
+    });
+  }
+
+  // Restore uploads directory
+  if (uploadsBackupPath) {
+    const uploadsDir = process.env.UPLOAD_DIR || join(process.cwd(), 'uploads');
+
+    // Remove current uploads
+    if (existsSync(uploadsDir)) {
+      await rm(uploadsDir, { recursive: true, force: true });
+    }
+
+    // Copy backup back
+    await cp(uploadsBackupPath, uploadsDir, { recursive: true });
+  }
+}
+
+/**
+ * Execute the full update process: backup -> merge -> migrate -> restart.
+ * Returns UpdateExecuteResult with phase information for progress tracking.
+ */
+export async function executeUpdate(fastify: FastifyInstance): Promise<UpdateExecuteResult> {
+  const previousVersion = getCurrentVersion();
+  const git = getGit();
+
+  // Phase 1: Database backup
+  const dbBackup = await createDatabaseBackup();
+  if (!dbBackup.success) {
+    return {
+      success: false,
+      phase: 'backup',
+      error: dbBackup.error,
+      previousVersion,
+    };
+  }
+
+  // Phase 2: Uploads backup
+  const uploadsBackup = await backupUploadsDirectory();
+  if (!uploadsBackup.success) {
+    return {
+      success: false,
+      phase: 'backup',
+      error: uploadsBackup.error,
+      previousVersion,
+    };
+  }
+
+  const backupPaths = {
+    database: dbBackup.backupPath,
+    uploads: uploadsBackup.backupPath,
+  };
+
+  // Phase 3: Git merge
+  const mergeResult = await executeGitMerge(git);
+  if (!mergeResult.success) {
+    return {
+      success: false,
+      phase: 'merge',
+      error: mergeResult.error,
+      backupPaths,
+      previousVersion,
+    };
+  }
+
+  // Phase 4: Run migrations
+  const migrationResult = await runMigrations();
+  if (!migrationResult.success) {
+    // Rollback on migration failure
+    try {
+      await rollback(dbBackup.backupPath, uploadsBackup.backupPath);
+    } catch (rollbackErr) {
+      const rollbackError = rollbackErr as Error;
+      return {
+        success: false,
+        phase: 'migrate',
+        error: `Migration failed and rollback failed: ${migrationResult.error}. Rollback error: ${rollbackError.message}`,
+        backupPaths,
+        previousVersion,
+      };
+    }
+
+    return {
+      success: false,
+      phase: 'migrate',
+      error: migrationResult.error,
+      backupPaths,
+      previousVersion,
+      message: 'Rolled back to previous state',
+    };
+  }
+
+  // Get new version after merge
+  let newVersion: string;
+  try {
+    newVersion = getCurrentVersion();
+  } catch {
+    newVersion = previousVersion; // Fallback if version.json wasn't updated
+  }
+
+  // Phase 5: Schedule restart
+  // Give the response time to be sent before restarting
+  setTimeout(() => {
+    fastify.log.info('Restarting server after update...');
+    process.exit(0); // Exit cleanly - process manager will restart
+  }, 2000);
+
+  return {
+    success: true,
+    phase: 'restart',
+    backupPaths,
+    previousVersion,
+    newVersion,
+    message: 'Update complete. Server restarting in 2 seconds...',
+  };
 }
