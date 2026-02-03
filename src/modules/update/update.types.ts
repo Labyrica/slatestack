@@ -32,3 +32,33 @@ export interface ChangelogResult {
     url: string;
   }>;
 }
+
+export interface BackupResult {
+  success: boolean;
+  backupPath: string;
+  timestamp: string;
+  error?: string;
+}
+
+export interface UpdateExecuteResult {
+  success: boolean;
+  phase: 'backup' | 'merge' | 'migrate' | 'restart' | 'health' | 'complete';
+  error?: string;
+  backupPaths?: {
+    database: string;
+    uploads: string;
+  };
+  previousVersion: string;
+  newVersion?: string;
+  message?: string;
+}
+
+export interface MergeResult {
+  success: boolean;
+  error?: string;
+}
+
+export interface MigrationResult {
+  success: boolean;
+  error?: string;
+}
