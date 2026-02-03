@@ -19,6 +19,10 @@ RUN npm run build
 # Stage 3 - Production
 FROM node:20-alpine AS production
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Required for update system: database backups (pg_dump/psql) and git operations
+RUN apk add --no-cache postgresql-client git
+
 WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
