@@ -138,6 +138,7 @@ export function UsersPage() {
                             size="sm"
                             onClick={() => handleDeleteClick(user.id, user.name)}
                             disabled={user.id === currentUserId}
+                            aria-label={`Delete ${user.name}`}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>

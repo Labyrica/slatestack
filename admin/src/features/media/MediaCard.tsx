@@ -90,6 +90,7 @@ export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected,
               e.stopPropagation()
               setMenuOpen(!menuOpen)
             }}
+            aria-label={`Actions for ${media.originalName}`}
           >
             <MoreVertical className="h-4 w-4" />
           </Button>
@@ -112,6 +113,7 @@ export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected,
                       setMenuOpen(false)
                       onEdit()
                     }}
+                    aria-label={`Edit ${media.originalName}`}
                   >
                     <Edit className="h-4 w-4" />
                     Edit
@@ -124,6 +126,7 @@ export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected,
                         setMenuOpen(false)
                         onCrop()
                       }}
+                      aria-label={`Crop ${media.originalName}`}
                     >
                       <Scissors className="h-4 w-4" />
                       Crop
@@ -136,6 +139,7 @@ export function MediaCard({ media, onEdit, onDelete, onCrop, onSelect, selected,
                       setMenuOpen(false)
                       onDelete()
                     }}
+                    aria-label={`Delete ${media.originalName}`}
                   >
                     <Trash2 className="h-4 w-4" />
                     Delete

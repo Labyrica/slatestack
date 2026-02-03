@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/table'
 import type { Entry } from '@/types/entry'
 import type { Collection } from '@/types/collection'
-import { Edit, Trash2, FileText } from 'lucide-react'
+import { Edit, Trash2, FileText, Loader2 } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
 
 interface EntryListProps {
@@ -136,6 +136,7 @@ export function EntryList({
                         variant="ghost"
                         size="icon"
                         onClick={() => onEdit(entry)}
+                        aria-label="Edit entry"
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -147,7 +148,14 @@ export function EntryList({
                             onClick={() => onDelete(entry.id)}
                             disabled={deleteMutation.isPending}
                           >
-                            Confirm
+                            {deleteMutation.isPending ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Deleting...
+                              </>
+                            ) : (
+                              'Confirm'
+                            )}
                           </Button>
                           <Button
                             variant="outline"
@@ -163,6 +171,7 @@ export function EntryList({
                           variant="ghost"
                           size="icon"
                           onClick={() => setDeleteConfirm(entry.id)}
+                          aria-label="Delete entry"
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />
                         </Button>
@@ -218,7 +227,14 @@ export function EntryList({
                     onClick={() => onDelete(entry.id)}
                     disabled={deleteMutation.isPending}
                   >
-                    Confirm
+                    {deleteMutation.isPending ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      'Confirm'
+                    )}
                   </Button>
                   <Button
                     variant="outline"
@@ -236,6 +252,7 @@ export function EntryList({
                   size="sm"
                   className="h-11 px-3"
                   onClick={() => setDeleteConfirm(entry.id)}
+                  aria-label="Delete entry"
                 >
                   <Trash2 className="h-4 w-4 text-destructive" />
                 </Button>
