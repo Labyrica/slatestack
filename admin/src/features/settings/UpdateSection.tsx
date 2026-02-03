@@ -5,7 +5,7 @@ import { fetcher, executeUpdate } from '@/lib/api'
 import type { UpdateExecuteResult } from '@/lib/api'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
-import { ExternalLink, RefreshCw, CheckCircle2, XCircle, Loader2 } from 'lucide-react'
+import { ExternalLink, RefreshCw, CheckCircle2, XCircle, Loader2, AlertCircle } from 'lucide-react'
 
 interface ChangelogResult {
   releases: Array<{
@@ -35,7 +35,7 @@ export function UpdateSection() {
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>('idle')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  const { data: update, isLoading: checkLoading } = useUpdateCheck()
+  const { data: update, isLoading: checkLoading, error: checkError } = useUpdateCheck()
 
   const { data: changelog } = useQuery({
     queryKey: ['admin', 'update', 'changelog'],
@@ -80,6 +80,22 @@ export function UpdateSection() {
 
   if (checkLoading) {
     return <div className="animate-pulse h-24 bg-muted rounded" />
+  }
+
+  // Handle update check errors gracefully (e.g., private repo without token)
+  if (checkError) {
+    const errorMessage = checkError instanceof Error ? checkError.message : 'Failed to check for updates'
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center gap-3 p-4 bg-muted/50 rounded text-muted-foreground">
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          <div>
+            <p className="font-medium">Unable to check for updates</p>
+            <p className="text-sm mt-1">{errorMessage}</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const latestRelease = changelog?.releases?.[0]
