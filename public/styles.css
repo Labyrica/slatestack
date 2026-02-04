@@ -40,10 +40,19 @@ nav {
 }
 
 .logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--fg);
   text-decoration: none;
+}
+
+.logo-img {
+  height: 1.5rem;
+  width: auto;
+  vertical-align: middle;
 }
 
 .admin-link {

@@ -25,7 +25,8 @@ export function Sidebar() {
 
   return (
     <div className="flex h-full w-60 flex-col border-r border-border bg-background">
-      <div className="p-6">
+      <div className="p-6 flex items-center gap-2">
+        <img src="/admin/slatestack.png" alt="" className="h-8 w-auto" aria-hidden />
         <h1 className="text-2xl font-bold tracking-tight text-foreground">Slatestack</h1>
       </div>
 

@@ -67,6 +67,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="flex flex-col items-center gap-4">
+        <img src="/admin/slatestack.png" alt="" className="h-12 w-auto mb-2" aria-hidden />
         <Card className="w-full max-w-md border-t-4 border-t-[hsl(var(--preset-accent))]">
           <CardHeader className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
