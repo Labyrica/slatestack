@@ -6,7 +6,7 @@ import { Card } from '@/components/ui/card'
 import { CollectionDialog } from './CollectionDialog'
 import { useCollections, useDeleteCollection } from '@/hooks/use-collections'
 import type { Collection } from '@/types/collection'
-import { Plus, Edit, Trash2, Database, FileText } from 'lucide-react'
+import { Plus, Edit, Trash2, Database, FileText, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function CollectionsPage() {
@@ -86,7 +86,7 @@ export function CollectionsPage() {
         {!isLoading && collections && collections.length > 0 && (
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {collections.map((collection) => (
-              <Card key={collection.id} className="p-6">
+              <Card key={collection.id} className="p-6 transition-shadow hover:shadow-md">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="text-lg font-semibold">{collection.name}</h3>
@@ -137,6 +137,7 @@ export function CollectionsPage() {
                     variant="outline"
                     size="sm"
                     onClick={() => handleEdit(collection)}
+                    aria-label={`Edit ${collection.name}`}
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -148,7 +149,14 @@ export function CollectionsPage() {
                         onClick={() => handleDelete(collection.id)}
                         disabled={deleteMutation.isPending}
                       >
-                        Confirm
+                        {deleteMutation.isPending ? (
+                          <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Deleting...
+                          </>
+                        ) : (
+                          'Confirm'
+                        )}
                       </Button>
                       <Button
                         variant="outline"
@@ -164,6 +172,7 @@ export function CollectionsPage() {
                       variant="outline"
                       size="sm"
                       onClick={() => setDeleteConfirm(collection.id)}
+                      aria-label={`Delete ${collection.name}`}
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>

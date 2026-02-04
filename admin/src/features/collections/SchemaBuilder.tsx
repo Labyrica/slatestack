@@ -94,7 +94,7 @@ export function SchemaBuilder({ fields, onChange }: SchemaBuilderProps) {
             return (
               <Card
                 key={field.id}
-                className={`p-4 ${hasError ? 'border-destructive' : ''}`}
+                className={`p-4 transition-colors hover:bg-muted/50 ${hasError ? 'border-destructive' : ''}`}
               >
                 <div className="flex items-start gap-3">
                   {/* Drag handle */}

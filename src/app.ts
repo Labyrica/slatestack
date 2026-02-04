@@ -14,6 +14,7 @@ import { collectionRoutes, entryRoutes, publicContentRoutes } from "./modules/co
 import { mediaRoutes } from "./modules/media/index.js";
 import { metricsRoutes, metricsAdminRoutes, metricsPublicRoutes } from "./modules/metrics/index.js";
 import { systemInfoRoutes } from "./modules/admin/index.js";
+import { updateRoutes } from "./modules/update/index.js";
 import staticRoutes from "./routes/static.js";
 import healthRoutes from "./routes/health.js";
 
@@ -93,6 +94,9 @@ export async function buildApp() {
 
   // Register system info routes (admin only)
   await fastify.register(systemInfoRoutes);
+
+  // Register update routes (admin only)
+  await fastify.register(updateRoutes);
 
   // Register metrics public routes (public, rate-limited)
   await fastify.register(metricsPublicRoutes);

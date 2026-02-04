@@ -2,9 +2,11 @@ import { useState, useRef } from 'react'
 import { Upload } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUploadMedia } from '@/hooks/use-media'
+import { Progress } from '@/components/ui/progress'
 
 export function UploadZone() {
   const [isDragging, setIsDragging] = useState(false)
+  const [uploadingFileName, setUploadingFileName] = useState<string>('')
   const fileInputRef = useRef<HTMLInputElement>(null)
   const uploadMutation = useUploadMedia()
 
@@ -24,6 +26,8 @@ export function UploadZone() {
 
     const files = e.dataTransfer.files
     if (files.length > 0) {
+      const fileNames = Array.from(files).map(f => f.name).join(', ')
+      setUploadingFileName(fileNames)
       uploadMutation.mutate(files)
     }
   }
@@ -31,6 +35,8 @@ export function UploadZone() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
     if (files && files.length > 0) {
+      const fileNames = Array.from(files).map(f => f.name).join(', ')
+      setUploadingFileName(fileNames)
       uploadMutation.mutate(files)
       // Reset input so the same file can be selected again
       e.target.value = ''
@@ -63,10 +69,18 @@ export function UploadZone() {
 
       <div className="flex flex-col items-center justify-center py-12 px-6">
         {uploadMutation.isPending ? (
-          <>
-            <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4" />
-            <p className="text-sm font-medium">Uploading...</p>
-          </>
+          <div className="w-full max-w-md space-y-4">
+            <div className="flex flex-col items-center">
+              <div className="h-12 w-12 rounded-full border-4 border-primary border-t-transparent animate-spin mb-4" />
+              <p className="text-sm font-medium text-center mb-2">Uploading...</p>
+              {uploadingFileName && (
+                <p className="text-xs text-muted-foreground text-center mb-4">
+                  {uploadingFileName}
+                </p>
+              )}
+            </div>
+            <Progress value={100} className="h-2" />
+          </div>
         ) : (
           <>
             <Upload className="h-12 w-12 text-muted-foreground mb-4" />

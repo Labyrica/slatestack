@@ -4,6 +4,7 @@ import { FieldRenderer } from './FieldRenderer'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
+import { Loader2, Save } from 'lucide-react'
 
 interface DynamicFormProps {
   collection: Collection
@@ -117,7 +118,17 @@ export function DynamicForm({
           Cancel
         </Button>
         <Button type="submit" disabled={isPending}>
-          {isPending ? 'Saving...' : submitLabel}
+          {isPending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-4 w-4" />
+              {submitLabel}
+            </>
+          )}
         </Button>
       </div>
     </form>

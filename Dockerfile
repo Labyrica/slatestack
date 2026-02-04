@@ -4,6 +4,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci
 COPY tsconfig.json drizzle.config.ts ./
+COPY version.json ./
 COPY src ./src
 RUN npm run build
 
@@ -18,12 +19,17 @@ RUN npm run build
 # Stage 3 - Production
 FROM node:20-alpine AS production
 RUN addgroup -g 1001 -S nodejs && adduser -S nodejs -u 1001
+
+# Required for update system: database backups (pg_dump/psql) and git operations
+RUN apk add --no-cache postgresql-client git
+
 WORKDIR /app
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=admin-builder --chown=nodejs:nodejs /app/dist ./admin/dist
 COPY --chown=nodejs:nodejs package*.json ./
 COPY --chown=nodejs:nodejs drizzle.config.ts ./
+COPY --chown=nodejs:nodejs version.json ./
 
 # Create uploads directory with correct ownership BEFORE switching users
 # Named volumes will inherit this ownership when first mounted

@@ -28,3 +28,22 @@ npm-debug.log*
 
 # GSD planning docs (local only)
 .planning/
+
+# Test artifacts (Phase 24 cleanup)
+*cookies.txt
+*-cookies.txt
+test-*.jpg
+test-*.png
+test-*.gif
+test-*.webp
+debug-*.json
+login-response*.json
+
+# Uploads (tracked initially, contents excluded going forward)
+uploads/**/*.jpg
+uploads/**/*.jpeg
+uploads/**/*.png
+uploads/**/*.gif
+uploads/**/*.webp
+uploads/**/*.pdf
+!uploads/.gitkeep

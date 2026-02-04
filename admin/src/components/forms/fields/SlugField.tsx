@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { FieldDefinition } from '@/types/collection'
 import { useEffect } from 'react'
+import { AlertCircle } from 'lucide-react'
 
 interface SlugFieldProps {
   field: FieldDefinition
@@ -64,7 +65,12 @@ export function SlugField({ field, control, error }: SlugFieldProps) {
           )
         }}
       />
-      {error && <p className="text-sm text-destructive">{error}</p>}
+      {error && (
+        <p className="text-sm text-destructive flex items-center gap-1.5 mt-1">
+          <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
+          <span>{error}</span>
+        </p>
+      )}
     </div>
   )
 }
