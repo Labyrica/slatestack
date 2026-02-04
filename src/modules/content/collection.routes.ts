@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
 import { requireRole } from "../auth/auth.service.js";
+import { ErrorResponseSchema } from "../../shared/schemas/index.js";
 import {
   createCollection,
   getCollection,
@@ -38,7 +39,7 @@ export const collectionRoutes: FastifyPluginAsync = async (fastify) => {
       params: Type.Object({ id: Type.String() }),
       response: {
         200: CollectionResponseSchema,
-        404: Type.Object({ error: Type.String() }),
+        404: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -59,7 +60,7 @@ export const collectionRoutes: FastifyPluginAsync = async (fastify) => {
       body: CreateCollectionSchema,
       response: {
         201: CollectionResponseSchema,
-        409: Type.Object({ error: Type.String() }),
+        409: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -83,7 +84,7 @@ export const collectionRoutes: FastifyPluginAsync = async (fastify) => {
       body: UpdateCollectionSchema,
       response: {
         200: CollectionResponseSchema,
-        404: Type.Object({ error: Type.String() }),
+        404: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -104,7 +105,7 @@ export const collectionRoutes: FastifyPluginAsync = async (fastify) => {
       params: Type.Object({ id: Type.String() }),
       response: {
         204: Type.Null(),
-        404: Type.Object({ error: Type.String() }),
+        404: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {

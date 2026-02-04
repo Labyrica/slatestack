@@ -77,7 +77,8 @@ export function useCreateEntry(collectionId: string) {
         body: JSON.stringify(input),
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: entryKeys.lists() })
+      // Only invalidate entries for this specific collection
+      queryClient.invalidateQueries({ queryKey: entryKeys.list(collectionId) })
     },
   })
 }
@@ -93,10 +94,9 @@ export function useUpdateEntry(collectionId: string) {
         body: JSON.stringify(data),
       }),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: entryKeys.lists() })
-      queryClient.invalidateQueries({
-        queryKey: entryKeys.detail(collectionId, data.id),
-      })
+      // Only invalidate entries for this specific collection
+      queryClient.invalidateQueries({ queryKey: entryKeys.list(collectionId) })
+      queryClient.setQueryData(entryKeys.detail(collectionId, data.id), data)
     },
   })
 }
@@ -111,7 +111,8 @@ export function useDeleteEntry(collectionId: string) {
         method: 'DELETE',
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: entryKeys.lists() })
+      // Only invalidate entries for this specific collection
+      queryClient.invalidateQueries({ queryKey: entryKeys.list(collectionId) })
     },
   })
 }

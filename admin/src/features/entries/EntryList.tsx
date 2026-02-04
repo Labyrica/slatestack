@@ -19,8 +19,11 @@ import {
 } from '@/components/ui/table'
 import type { Entry } from '@/types/entry'
 import type { Collection } from '@/types/collection'
-import { Edit, Trash2, FileText, Loader2 } from 'lucide-react'
+import { Edit, FileText } from 'lucide-react'
 import type { UseMutationResult } from '@tanstack/react-query'
+import { formatDate } from '@/lib/formatters'
+import { getEntryTitle } from './entry-utils'
+import { DeleteEntryButton } from './DeleteEntryButton'
 
 interface EntryListProps {
   entries: Entry[]
@@ -49,31 +52,6 @@ export function EntryList({
   totalPages,
   onPageChange,
 }: EntryListProps) {
-  // Get display title from entry data
-  const getEntryTitle = (entry: Entry): string => {
-    // Look for common title fields
-    const titleFields = ['title', 'name', 'heading', 'label']
-    for (const field of titleFields) {
-      if (entry.data[field]) {
-        return String(entry.data[field])
-      }
-    }
-    // Fallback to first field value or slug
-    const firstValue = Object.values(entry.data)[0]
-    return firstValue ? String(firstValue) : entry.slug
-  }
-
-  // Format date for display
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
-
-  // Loading state
   if (isLoading) {
     return (
       <Card className="p-12">
@@ -84,7 +62,6 @@ export function EntryList({
     )
   }
 
-  // Empty state
   if (entries.length === 0) {
     return (
       <Card className="p-12 text-center">
@@ -116,14 +93,10 @@ export function EntryList({
                 <TableRow key={entry.id}>
                   <TableCell className="font-medium">
                     {getEntryTitle(entry)}
-                    <div className="text-xs text-muted-foreground">
-                      /{entry.slug}
-                    </div>
+                    <div className="text-xs text-muted-foreground">/{entry.slug}</div>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant={entry.status === 'published' ? 'success' : 'warning'}
-                    >
+                    <Badge variant={entry.status === 'published' ? 'success' : 'warning'}>
                       {entry.status}
                     </Badge>
                   </TableCell>
@@ -140,42 +113,13 @@ export function EntryList({
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
-                      {deleteConfirm === entry.id ? (
-                        <>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => onDelete(entry.id)}
-                            disabled={deleteMutation.isPending}
-                          >
-                            {deleteMutation.isPending ? (
-                              <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Deleting...
-                              </>
-                            ) : (
-                              'Confirm'
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeleteConfirm(null)}
-                            disabled={deleteMutation.isPending}
-                          >
-                            Cancel
-                          </Button>
-                        </>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setDeleteConfirm(entry.id)}
-                          aria-label="Delete entry"
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      )}
+                      <DeleteEntryButton
+                        isConfirming={deleteConfirm === entry.id}
+                        isPending={deleteMutation.isPending}
+                        onConfirm={() => setDeleteConfirm(entry.id)}
+                        onCancel={() => setDeleteConfirm(null)}
+                        onDelete={() => onDelete(entry.id)}
+                      />
                     </div>
                   </TableCell>
                 </TableRow>
@@ -204,9 +148,7 @@ export function EntryList({
               </div>
             </CardHeader>
             <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Updated {formatDate(entry.updatedAt)}
-              </p>
+              <p className="text-xs text-muted-foreground">Updated {formatDate(entry.updatedAt)}</p>
             </CardContent>
             <CardFooter className="flex gap-2">
               <Button
@@ -218,56 +160,20 @@ export function EntryList({
                 <Edit className="mr-2 h-4 w-4" />
                 Edit
               </Button>
-              {deleteConfirm === entry.id ? (
-                <>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    className="flex-1 h-11"
-                    onClick={() => onDelete(entry.id)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    {deleteMutation.isPending ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Deleting...
-                      </>
-                    ) : (
-                      'Confirm'
-                    )}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex-1 h-11"
-                    onClick={() => setDeleteConfirm(null)}
-                    disabled={deleteMutation.isPending}
-                  >
-                    Cancel
-                  </Button>
-                </>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-11 px-3"
-                  onClick={() => setDeleteConfirm(entry.id)}
-                  aria-label="Delete entry"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              )}
+              <DeleteEntryButton
+                isConfirming={deleteConfirm === entry.id}
+                isPending={deleteMutation.isPending}
+                onConfirm={() => setDeleteConfirm(entry.id)}
+                onCancel={() => setDeleteConfirm(null)}
+                onDelete={() => onDelete(entry.id)}
+                variant="full"
+              />
             </CardFooter>
           </Card>
         ))}
       </div>
 
-      {/* Pagination */}
-      <Pagination
-        page={currentPage}
-        totalPages={totalPages}
-        onPageChange={onPageChange}
-      />
+      <Pagination page={currentPage} totalPages={totalPages} onPageChange={onPageChange} />
     </div>
   )
 }

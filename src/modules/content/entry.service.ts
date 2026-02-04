@@ -7,6 +7,7 @@ import { getCollection } from './collection.service.js';
 import { generateSlug, ensureUniqueSlug } from './slug.utils.js';
 import { CreateEntryInput, UpdateEntryInput, EntryResponse, SearchEntriesQuery } from './entry.schemas.js';
 import { PublicEntry } from './public.schemas.js';
+import { NotFoundError, ValidationError } from '../../shared/errors/index.js';
 
 /**
  * Create a new entry in a collection
@@ -18,20 +19,17 @@ export async function createEntry(
   // Fetch collection
   const coll = await getCollection(collectionId);
   if (!coll) {
-    throw new Error('Collection not found');
+    throw new NotFoundError('Collection', collectionId);
   }
 
   // Validate entry data against collection schema
   const validation = validateEntryData(coll.fields, input.data);
   if (!validation.valid) {
-    const error = new Error('Validation failed') as Error & {
-      details: Array<{ field: string; message: string }>;
-    };
-    error.details = validation.errors.map((err) => {
+    const details = validation.errors.map((err) => {
       const [field, ...messageParts] = err.split(': ');
       return { field, message: messageParts.join(': ') };
     });
-    throw error;
+    throw new ValidationError('Validation failed', details);
   }
 
   // Generate slug from configured field or fallback to 'title'
@@ -44,7 +42,7 @@ export async function createEntry(
       const baseSlug = generateSlug(String(sourceValue));
       slug = await ensureUniqueSlug(collectionId, baseSlug);
     } else {
-      throw new Error(`Slug source field '${slugField.generateFrom}' is required`);
+      throw new ValidationError(`Slug source field '${slugField.generateFrom}' is required`);
     }
   } else {
     // Fallback: use 'title' field or generate from id
@@ -230,28 +228,25 @@ export async function updateEntry(
   // Fetch existing entry
   const existingEntry = await getEntry(collectionId, entryId);
   if (!existingEntry) {
-    throw new Error('Entry not found');
+    throw new NotFoundError('Entry', entryId);
   }
 
   // If data is being updated, validate it
   if (input.data) {
     const coll = await getCollection(collectionId);
     if (!coll) {
-      throw new Error('Collection not found');
+      throw new NotFoundError('Collection', collectionId);
     }
 
     // Merge existing data with updates for validation
     const mergedData = { ...existingEntry.data, ...input.data };
     const validation = validateEntryData(coll.fields, mergedData);
     if (!validation.valid) {
-      const error = new Error('Validation failed') as Error & {
-        details: Array<{ field: string; message: string }>;
-      };
-      error.details = validation.errors.map((err) => {
+      const details = validation.errors.map((err) => {
         const [field, ...messageParts] = err.split(': ');
         return { field, message: messageParts.join(': ') };
       });
-      throw error;
+      throw new ValidationError('Validation failed', details);
     }
 
     // Check if slug needs regeneration
@@ -340,24 +335,33 @@ export async function deleteEntry(
     .returning({ id: entry.id });
 
   if (result.length === 0) {
-    throw new Error('Entry not found');
+    throw new NotFoundError('Entry');
   }
 }
 
 /**
  * Reorder entries for drag-and-drop
+ * Uses batch UPDATE with CASE for O(1) queries instead of O(n)
  */
 export async function reorderEntries(
   collectionId: string,
   orderedIds: string[]
 ): Promise<void> {
-  // Update position for each entry based on array index
-  for (let i = 0; i < orderedIds.length; i++) {
-    await db
-      .update(entry)
-      .set({ position: i, updatedAt: new Date() })
-      .where(and(eq(entry.id, orderedIds[i]), eq(entry.collectionId, collectionId)));
-  }
+  if (orderedIds.length === 0) return;
+
+  // Build CASE expression for position updates
+  const cases = orderedIds
+    .map((id, index) => sql`WHEN ${id} THEN ${index}`)
+    .reduce((acc, curr) => sql`${acc} ${curr}`);
+
+  // Single batch update query
+  await db.execute(sql`
+    UPDATE entry
+    SET position = CASE id ${cases} END,
+        updated_at = NOW()
+    WHERE collection_id = ${collectionId}
+      AND id IN ${sql`(${sql.join(orderedIds.map(id => sql`${id}`), sql`, `)})`}
+  `);
 }
 
 /**
@@ -370,7 +374,7 @@ export async function listPublishedEntries(
   // Get collection by slug
   const coll = await getCollection(collectionSlug);
   if (!coll) {
-    throw new Error('Collection not found');
+    throw new NotFoundError('Collection', collectionSlug);
   }
 
   const page = options.page ?? 1;
@@ -415,7 +419,7 @@ export async function getPublishedEntry(
   // Get collection by slug
   const coll = await getCollection(collectionSlug);
   if (!coll) {
-    throw new Error('Collection not found');
+    throw new NotFoundError('Collection', collectionSlug);
   }
 
   // Find published entry by slug

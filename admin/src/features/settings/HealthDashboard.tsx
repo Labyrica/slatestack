@@ -1,17 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { useHealth } from '@/hooks/use-health'
 import { Database, HardDrive, MemoryStick, Clock } from 'lucide-react'
-
-function formatBytes(bytes: number): string {
-  const mb = bytes / 1024 / 1024
-  return `${mb.toFixed(0)} MB`
-}
-
-function formatUptime(seconds: number): string {
-  const hours = Math.floor(seconds / 3600)
-  const minutes = Math.floor((seconds % 3600) / 60)
-  return `${hours}h ${minutes}m`
-}
+import { formatMemory, formatUptime } from '@/lib/formatters'
 
 interface StatusIndicatorProps {
   status: 'connected' | 'disconnected' | 'writable' | 'unavailable' | 'ok' | 'warning'
@@ -98,7 +88,7 @@ export function HealthDashboard() {
             <div className="text-2xl font-bold">{heapPercent.toFixed(0)}%</div>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            {formatBytes(health.memory.heapUsed)} / {formatBytes(health.memory.heapTotal)}
+            {formatMemory(health.memory.heapUsed)} / {formatMemory(health.memory.heapTotal)}
           </p>
         </CardContent>
       </Card>

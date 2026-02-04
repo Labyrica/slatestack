@@ -3,6 +3,17 @@ import { fetcher } from '@/lib/api'
 import { toast } from 'sonner'
 import type { MediaFile, MediaListResponse, ImageInfo, MediaType, CropData } from '@/types/media'
 
+// Query key factory for media
+const mediaKeys = {
+  all: ['media'] as const,
+  lists: () => [...mediaKeys.all, 'list'] as const,
+  list: (params?: Record<string, unknown>) => [...mediaKeys.lists(), params] as const,
+  details: () => [...mediaKeys.all, 'detail'] as const,
+  detail: (id: string) => [...mediaKeys.details(), id] as const,
+  info: (id: string) => [...mediaKeys.detail(id), 'info'] as const,
+  storage: () => [...mediaKeys.all, 'storage'] as const,
+}
+
 interface UseMediaParams {
   type?: MediaType
   search?: string
@@ -21,7 +32,7 @@ export function useMedia(params: UseMediaParams = {}) {
   const queryString = queryParams.toString()
 
   return useQuery({
-    queryKey: ['media', params],
+    queryKey: mediaKeys.list(params as Record<string, unknown>),
     queryFn: () => fetcher<MediaListResponse>(`/admin/media${queryString ? `?${queryString}` : ''}`),
     throwOnError: true,
   })
@@ -29,7 +40,7 @@ export function useMedia(params: UseMediaParams = {}) {
 
 export function useSingleMedia(id: string) {
   return useQuery({
-    queryKey: ['media', id],
+    queryKey: mediaKeys.detail(id),
     queryFn: () => fetcher<MediaFile>(`/admin/media/${id}`),
     enabled: !!id,
     throwOnError: true,
@@ -61,7 +72,9 @@ export function useUploadMedia() {
       return response.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['media'] })
+      // Invalidate lists and storage stats (new file affects both)
+      queryClient.invalidateQueries({ queryKey: mediaKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: mediaKeys.storage() })
       toast.success('File(s) uploaded successfully')
     },
     onError: (error: Error) => {
@@ -81,8 +94,9 @@ export function useUpdateMedia() {
       })
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['media'] })
-      queryClient.invalidateQueries({ queryKey: ['media', data.id] })
+      // Update cache directly for single item, invalidate lists
+      queryClient.setQueryData(mediaKeys.detail(data.id), data)
+      queryClient.invalidateQueries({ queryKey: mediaKeys.lists() })
       toast.success('Media updated successfully')
     },
     onError: (error: Error) => {
@@ -107,7 +121,9 @@ export function useDeleteMedia() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['media'] })
+      // Invalidate lists and storage stats (deleted file affects both)
+      queryClient.invalidateQueries({ queryKey: mediaKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: mediaKeys.storage() })
       toast.success('Media deleted successfully')
     },
     onError: (error: Error) => {
@@ -118,7 +134,7 @@ export function useDeleteMedia() {
 
 export function useImageInfo(id: string) {
   return useQuery({
-    queryKey: ['media', id, 'info'],
+    queryKey: mediaKeys.info(id),
     queryFn: () => fetcher<ImageInfo>(`/admin/media/${id}/info`),
     enabled: !!id,
   })
@@ -135,7 +151,9 @@ export function useCropImage() {
       })
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['media'] })
+      // Cropping creates a new file, invalidate lists and storage
+      queryClient.invalidateQueries({ queryKey: mediaKeys.lists() })
+      queryClient.invalidateQueries({ queryKey: mediaKeys.storage() })
       toast.success('Image cropped successfully')
     },
     onError: (error: Error) => {

@@ -12,6 +12,7 @@ import {
   UserListResponseSchema,
 } from "./auth.schemas.js";
 import { Type } from "@sinclair/typebox";
+import { ErrorResponseSchema } from "../../shared/schemas/index.js";
 
 export const userRoutes: FastifyPluginAsync = async (fastify) => {
   const app = fastify.withTypeProvider<TypeBoxTypeProvider>();
@@ -35,8 +36,8 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
       body: CreateUserSchema,
       response: {
         201: UserResponseSchema,
-        400: Type.Object({ error: Type.String() }),
-        409: Type.Object({ error: Type.String() }),
+        400: ErrorResponseSchema,
+        409: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -62,8 +63,8 @@ export const userRoutes: FastifyPluginAsync = async (fastify) => {
       params: Type.Object({ id: Type.String() }),
       response: {
         204: Type.Null(),
-        400: Type.Object({ error: Type.String() }),
-        404: Type.Object({ error: Type.String() }),
+        400: ErrorResponseSchema,
+        404: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {

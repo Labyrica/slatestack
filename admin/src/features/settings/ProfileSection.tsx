@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { User } from 'lucide-react'
+import { formatDate } from '@/lib/formatters'
 
 interface Session {
   user: {
@@ -16,14 +17,6 @@ interface ProfileSectionProps {
 }
 
 export function ProfileSection({ session }: ProfileSectionProps) {
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -45,7 +38,7 @@ export function ProfileSection({ session }: ProfileSectionProps) {
         </div>
         <div>
           <p className="text-sm text-muted-foreground">Member since</p>
-          <p className="font-medium">{formatDate(session.user.createdAt)}</p>
+          <p className="font-medium">{formatDate(session.user.createdAt, 'long')}</p>
         </div>
       </CardContent>
     </Card>

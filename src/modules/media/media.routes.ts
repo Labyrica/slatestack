@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from "fastify";
 import { TypeBoxTypeProvider } from "@fastify/type-provider-typebox";
 import { Type } from "@sinclair/typebox";
 import { requireRole } from "../auth/auth.service.js";
+import { ErrorResponseSchema } from "../../shared/schemas/index.js";
 import {
   uploadFile,
   cropImage,
@@ -71,7 +72,7 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
         params: MediaIdParamSchema,
         response: {
           200: MediaFileResponseSchema,
-          404: Type.Object({ error: Type.String() }),
+          404: ErrorResponseSchema,
         },
       },
     },
@@ -101,7 +102,7 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
         body: UpdateMediaSchema,
         response: {
           200: MediaFileResponseSchema,
-          404: Type.Object({ error: Type.String() }),
+          404: ErrorResponseSchema,
         },
       },
     },
@@ -130,7 +131,7 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
         params: MediaIdParamSchema,
         response: {
           204: Type.Null(),
-          404: Type.Object({ error: Type.String() }),
+          404: ErrorResponseSchema,
         },
       },
     },
@@ -158,7 +159,7 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
       schema: {
         response: {
           200: UploadResponseSchema,
-          400: Type.Object({ error: Type.String() }),
+          400: ErrorResponseSchema,
         },
       },
     },
@@ -216,8 +217,8 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
         params: MediaIdParamSchema,
         response: {
           200: ImageInfoSchema,
-          400: Type.Object({ error: Type.String() }),
-          404: Type.Object({ error: Type.String() }),
+          400: ErrorResponseSchema,
+          404: ErrorResponseSchema,
         },
       },
     },
@@ -256,8 +257,8 @@ export const mediaRoutes: FastifyPluginAsync = async (fastify) => {
         body: CropImageSchema,
         response: {
           200: MediaFileResponseSchema,
-          400: Type.Object({ error: Type.String() }),
-          404: Type.Object({ error: Type.String() }),
+          400: ErrorResponseSchema,
+          404: ErrorResponseSchema,
         },
       },
     },

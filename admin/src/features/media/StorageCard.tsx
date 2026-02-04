@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui/card'
 import { Progress } from '@/components/ui/progress'
 import { useMediaStorage } from '@/hooks/use-media-storage'
-import { formatBytes } from '@/lib/utils'
+import { formatBytes } from '@/lib/formatters'
 import { Image, Video, FileText, Music, HardDrive } from 'lucide-react'
 
 const categories = [

@@ -29,6 +29,7 @@ import { useUsers, useDeleteUser } from '@/hooks/use-users'
 import { useSession } from '@/lib/auth'
 import { Plus, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { formatDate } from '@/lib/formatters'
 
 export function UsersPage() {
   const { data: session } = useSession()
@@ -59,14 +60,6 @@ export function UsersPage() {
     await deleteUser.mutateAsync(userToDelete.id)
     setDeleteDialogOpen(false)
     setUserToDelete(null)
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
   }
 
   return (

@@ -2,6 +2,8 @@ import { FastifyPluginAsync } from 'fastify';
 import { TypeBoxTypeProvider } from '@fastify/type-provider-typebox';
 import { Type } from '@sinclair/typebox';
 import { requireRole } from '../auth/auth.service.js';
+import { ErrorResponseSchema, ValidationErrorResponseSchema } from '../../shared/schemas/index.js';
+import { isAppError, NotFoundError, ValidationError } from '../../shared/errors/index.js';
 import {
   createEntry,
   getEntry,
@@ -86,7 +88,7 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
       params: EntryIdParamSchema,
       response: {
         200: EntryResponseSchema,
-        404: Type.Object({ error: Type.String() }),
+        404: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -109,18 +111,8 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
       body: CreateEntrySchema,
       response: {
         201: EntryResponseSchema,
-        400: Type.Object({
-          error: Type.String(),
-          details: Type.Optional(
-            Type.Array(
-              Type.Object({
-                field: Type.String(),
-                message: Type.String(),
-              })
-            )
-          ),
-        }),
-        404: Type.Object({ error: Type.String() }),
+        400: ValidationErrorResponseSchema,
+        404: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -129,19 +121,14 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
         const newEntry = await createEntry(collectionId, request.body);
         return reply.status(201).send(newEntry);
       } catch (error) {
-        if (error instanceof Error) {
-          if (error.message === 'Collection not found') {
-            return reply.status(404).send({ error: error.message });
-          }
-          if (error.message === 'Validation failed') {
-            const validationError = error as Error & {
-              details: Array<{ field: string; message: string }>;
-            };
-            return reply.status(400).send({
-              error: error.message,
-              details: validationError.details,
-            });
-          }
+        if (error instanceof NotFoundError) {
+          return reply.status(404).send({ error: error.message });
+        }
+        if (error instanceof ValidationError) {
+          return reply.status(400).send({
+            error: error.message,
+            details: error.details,
+          });
         }
         throw error;
       }
@@ -156,18 +143,8 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
       body: UpdateEntrySchema,
       response: {
         200: EntryResponseSchema,
-        400: Type.Object({
-          error: Type.String(),
-          details: Type.Optional(
-            Type.Array(
-              Type.Object({
-                field: Type.String(),
-                message: Type.String(),
-              })
-            )
-          ),
-        }),
-        404: Type.Object({ error: Type.String() }),
+        400: ValidationErrorResponseSchema,
+        404: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -176,19 +153,14 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
         const updatedEntry = await updateEntry(collectionId, entryId, request.body);
         return reply.send(updatedEntry);
       } catch (error) {
-        if (error instanceof Error) {
-          if (error.message === 'Entry not found' || error.message === 'Collection not found') {
-            return reply.status(404).send({ error: error.message });
-          }
-          if (error.message === 'Validation failed') {
-            const validationError = error as Error & {
-              details: Array<{ field: string; message: string }>;
-            };
-            return reply.status(400).send({
-              error: error.message,
-              details: validationError.details,
-            });
-          }
+        if (error instanceof NotFoundError) {
+          return reply.status(404).send({ error: error.message });
+        }
+        if (error instanceof ValidationError) {
+          return reply.status(400).send({
+            error: error.message,
+            details: error.details,
+          });
         }
         throw error;
       }
@@ -202,7 +174,7 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
       params: EntryIdParamSchema,
       response: {
         204: Type.Null(),
-        404: Type.Object({ error: Type.String() }),
+        404: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
@@ -211,7 +183,7 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
         await deleteEntry(collectionId, entryId);
         return reply.status(204).send(null);
       } catch (error) {
-        if (error instanceof Error && error.message === 'Entry not found') {
+        if (error instanceof NotFoundError) {
           return reply.status(404).send({ error: error.message });
         }
         throw error;

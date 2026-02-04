@@ -11,9 +11,12 @@ interface StorageStats {
   }
 }
 
+// Must match mediaKeys.storage() from use-media.ts for proper invalidation
+const STORAGE_KEY = ['media', 'storage'] as const
+
 export function useMediaStorage() {
   return useQuery({
-    queryKey: ['media', 'storage'],
+    queryKey: STORAGE_KEY,
     queryFn: () => fetcher<StorageStats>('/admin/media/storage'),
     staleTime: 5 * 60 * 1000, // 5 minutes - storage changes infrequently
   })

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label'
 import { FileText, Film, Music, File, Scissors } from 'lucide-react'
 import { useUpdateMedia } from '@/hooks/use-media'
 import type { MediaFile } from '@/types/media'
+import { formatDate, formatBytes } from '@/lib/formatters'
 
 interface MediaDetailDialogProps {
   open: boolean
@@ -35,22 +36,6 @@ export function MediaDetailDialog({ open, onOpenChange, media, onDelete, onCrop 
     if (media.mimeType.startsWith('audio/')) return <Music className="h-24 w-24 text-muted-foreground" />
     if (media.mimeType.includes('pdf') || media.mimeType.includes('document')) return <FileText className="h-24 w-24 text-muted-foreground" />
     return <File className="h-24 w-24 text-muted-foreground" />
-  }
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-  }
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
   }
 
   const handleSave = () => {
@@ -97,7 +82,7 @@ export function MediaDetailDialog({ open, onOpenChange, media, onDelete, onCrop 
             </div>
             <div>
               <p className="font-medium text-muted-foreground">File Size</p>
-              <p className="mt-1">{formatFileSize(media.size)}</p>
+              <p className="mt-1">{formatBytes(media.size)}</p>
             </div>
             <div>
               <p className="font-medium text-muted-foreground">Type</p>
@@ -111,7 +96,7 @@ export function MediaDetailDialog({ open, onOpenChange, media, onDelete, onCrop 
             )}
             <div>
               <p className="font-medium text-muted-foreground">Uploaded</p>
-              <p className="mt-1">{formatDate(media.createdAt)}</p>
+              <p className="mt-1">{formatDate(media.createdAt, 'datetime')}</p>
             </div>
           </div>
 
