@@ -42,12 +42,17 @@ const healthRoutes: FastifyPluginAsync = async (fastify) => {
     // Gather memory metrics
     const memoryUsage = process.memoryUsage();
     const heapPercent = Math.round((memoryUsage.heapUsed / memoryUsage.heapTotal) * 100);
+    const heapUsedMB = memoryUsage.heapUsed / 1024 / 1024;
+
+    // Memory is only concerning if BOTH high percentage AND high absolute usage
+    // Small heaps (< 256 MB) at high percentage are fine - Node will auto-expand
+    const memoryDegraded = heapPercent > 90 && heapUsedMB > 256;
 
     // Determine overall status
     let status: "ok" | "degraded" | "error";
     if (databaseStatus === "disconnected") {
       status = "error";
-    } else if (mediaStatus === "unavailable" || heapPercent > 90) {
+    } else if (mediaStatus === "unavailable" || memoryDegraded) {
       status = "degraded";
     } else {
       status = "ok";
