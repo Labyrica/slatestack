@@ -10,8 +10,8 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 
 ## Current State
 
-**Version:** v1.4 Robustness & Observability (shipped 2026-01-27)
-**Codebase:** ~11,700 lines TypeScript across 200+ files
+**Version:** v1.5 Production Polish (shipped 2026-02-04)
+**Codebase:** ~12,500 lines TypeScript across 210+ files
 **Stack:** Node + Fastify + Drizzle + PostgreSQL + React + Vite + Recharts + Zustand
 
 **What's Working:**
@@ -25,7 +25,7 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 - Arsenal design system with Space Grotesk typography
 - Light/dark/system theme with three-way toggle
 - Enhanced Metrics page with charts and trend indicators
-- Settings page with system info and health dashboard
+- Settings page with collapsible sections and health dashboard
 - Full mobile responsiveness with 44px touch targets
 - Responsive dialogs (drawer on mobile, dialog on desktop)
 - Mobile navigation drawer
@@ -33,10 +33,13 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 - Unified health state with single source of truth
 - Error boundaries with graceful degradation
 - Structured JSON logging with configurable levels
+- Self-update system (backup, merge, migrate, restart, rollback)
+- Server restart button in admin settings
+- Update banner with changelog preview
 
 ## Requirements
 
-### Validated (v1.0 + v1.1 + v1.2 + v1.3 + v1.4)
+### Validated (v1.0 + v1.1 + v1.2 + v1.3 + v1.4 + v1.5)
 
 - Admin created from env vars on startup — v1.0
 - Email/password login with session persistence — v1.0
@@ -70,13 +73,17 @@ Zero-friction backend module: define your content schema in the UI, get stable A
 - Error boundaries (graceful degradation on API failures) — v1.4
 - Structured logging (JSON with request IDs, configurable levels) — v1.4
 - Health dashboard (memory metrics, uptime, system status) — v1.4
+- Self-update system (backup, merge from upstream, migrate, restart, rollback) — v1.5
+- Settings page collapsible sections with visual hierarchy — v1.5
+- UX friction audit with heuristic evaluation — v1.5
+- Server restart button in admin settings — v1.5
+- Update banner with changelog preview — v1.5
+- Repository cleanup (removed test artifacts from git) — v1.5
+- Entry cache invalidation fix for immediate UI updates — v1.5
 
 ### Active
 
-- [ ] Self-update system (pull upstream changes without affecting custom code)
-- [ ] Settings page layout redesign (fix visual hierarchy)
-- [ ] Repository cleanup (remove test artifacts, sensitive files)
-- [ ] UX friction audit and fixes
+(None — v1.5 complete)
 
 ### Out of Scope
 
@@ -134,21 +141,24 @@ The content schema should be simple enough that an AI can generate a frontend fr
 | Pino-pretty only in development | Production gets structured JSON for log aggregation | ✓ Good |
 | 90% heap threshold for degraded status | Early warning before OOM errors | ✓ Good |
 
-## Current Milestone: v1.5 Production Polish
+## Current Milestone: v1.5 Production Polish ✓ COMPLETE
 
 **Goal:** Self-update capability, Settings UX improvements, repository cleanup, and friction audit.
 
-**Target features:**
-- Self-update system that pulls from upstream Slatestack repo without affecting custom frontend code
-- Settings page redesign with better visual hierarchy
-- Repository cleanup (remove test artifacts, sensitive cookie files, debug JSON)
-- UX audit to identify and fix friction points
+**Shipped:** 2026-02-04
+
+**What was delivered:**
+- ✓ Self-update system (full implementation with backup, merge, migrate, restart, rollback)
+- ✓ Settings page redesign (collapsible sections, visual hierarchy)
+- ✓ UX friction audit (heuristic evaluation, workflow testing, form improvements)
+- ✓ Server restart button in admin settings
+- ✓ Update banner with changelog preview
+- ✓ Entry cache invalidation fix
+- ✓ Repository cleanup (removed test artifacts from git tracking)
 
 ## Previous Milestone: v1.4 Robustness & Observability (shipped 2026-01-27)
 
 Fixed reliability issues with status indicators, caching, and Docker permissions; added basic observability for debugging and monitoring.
 
-See `.planning/milestones/v1.4-ROADMAP.md` for full details.
-
 ---
-*Last updated: 2026-02-04 after merge of parallel development branches*
+*Last updated: 2026-02-04 after v1.5 completion*

@@ -26,9 +26,6 @@ Thumbs.db
 *.log
 npm-debug.log*
 
-# GSD planning docs (local only)
-.planning/
-
 # Test artifacts (Phase 24 cleanup)
 *cookies.txt
 *-cookies.txt
