@@ -7,12 +7,14 @@ import type {
   PaginatedEntriesResponse,
 } from '@/types/entry'
 
-// Query keys
+// Query keys - params only included when provided to enable prefix invalidation
 const entryKeys = {
   all: ['entries'] as const,
   lists: () => [...entryKeys.all, 'list'] as const,
   list: (collectionId: string, params?: Record<string, unknown>) =>
-    [...entryKeys.lists(), collectionId, params] as const,
+    params
+      ? ([...entryKeys.lists(), collectionId, params] as const)
+      : ([...entryKeys.lists(), collectionId] as const),
   details: () => [...entryKeys.all, 'detail'] as const,
   detail: (collectionId: string, entryId: string) =>
     [...entryKeys.details(), collectionId, entryId] as const,

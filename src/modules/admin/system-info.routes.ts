@@ -4,6 +4,10 @@ import { db } from "../../shared/database/index.js";
 import { sql } from "drizzle-orm";
 import pkg from "../../../package.json" with { type: "json" };
 
+interface RestartResponse {
+  message: string;
+}
+
 interface SystemInfoResponse {
   version: string;
   database: string;
@@ -34,6 +38,26 @@ export const systemInfoRoutes: FastifyPluginAsync = async (fastify) => {
         nodeVersion: process.version,
         uptime: process.uptime(),
       });
+    }
+  );
+
+  // POST /api/admin/restart - Gracefully restart the server (admin only)
+  fastify.post<{ Reply: RestartResponse }>(
+    "/api/admin/restart",
+    {
+      preHandler: [requireRole("admin")],
+    },
+    async (request, reply) => {
+      request.log.info("Server restart requested by admin");
+
+      // Send response before exiting
+      reply.send({ message: "Server is restarting..." });
+
+      // Delay exit to allow response to be sent
+      setTimeout(() => {
+        request.log.info("Shutting down for restart");
+        process.exit(0);
+      }, 500);
     }
   );
 };
