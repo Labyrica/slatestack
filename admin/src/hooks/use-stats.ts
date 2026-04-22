@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetcher } from '@/lib/api'
+import { useSession } from '@/lib/auth'
 
 interface Stats {
   collections: number
   entries: number
   media: number
-  users: number
+  users?: number
 }
 
 interface PaginatedResponse<T> {
@@ -23,21 +24,25 @@ interface EntryStats {
 }
 
 export function useStats() {
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as any)?.role === 'admin'
+
   return useQuery({
-    queryKey: ['stats'],
+    queryKey: ['stats', { isAdmin }],
     queryFn: async () => {
-      const [collections, media, users, entryStats] = await Promise.all([
+      // /admin/users is admin-only — only fetch it when the current user can.
+      const [collections, media, entryStats, users] = await Promise.all([
         fetcher<Array<{ id: string }>>('/admin/collections'),
         fetcher<PaginatedResponse<{ id: string }>>('/admin/media'),
-        fetcher<Array<{ id: string }>>('/admin/users'),
         fetcher<EntryStats>('/admin/entries/stats'),
+        isAdmin ? fetcher<Array<{ id: string }>>('/admin/users') : Promise.resolve(null),
       ])
 
       const stats: Stats = {
         collections: collections.length,
         entries: entryStats.total,
         media: media.meta.total,
-        users: users.length,
+        users: users ? users.length : undefined,
       }
 
       return stats

@@ -2,17 +2,22 @@ import { Shell } from '@/components/layout/Shell'
 import { StatsCard } from './StatsCard'
 import { MetricsCard } from './MetricsCard'
 import { useStats } from '@/hooks/use-stats'
+import { useSession } from '@/lib/auth'
 import { FolderOpen, FileText, Image, Users } from 'lucide-react'
 
-const statCards = [
+const baseStatCards = [
   { title: 'Collections', icon: FolderOpen, key: 'collections' as const },
   { title: 'Entries', icon: FileText, key: 'entries' as const },
   { title: 'Media Files', icon: Image, key: 'media' as const },
-  { title: 'Users', icon: Users, key: 'users' as const },
 ]
+
+const userStatCard = { title: 'Users', icon: Users, key: 'users' as const }
 
 export function DashboardPage() {
   const { data: stats, isLoading } = useStats()
+  const { data: session } = useSession()
+  const isAdmin = (session?.user as any)?.role === 'admin'
+  const statCards = isAdmin ? [...baseStatCards, userStatCard] : baseStatCards
 
   return (
     <Shell title="Dashboard">
