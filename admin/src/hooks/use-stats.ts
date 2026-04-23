@@ -5,7 +5,7 @@ import { useSession } from '@/lib/auth'
 interface Stats {
   collections: number
   entries: number
-  media: number
+  media?: number
   users?: number
 }
 
@@ -25,15 +25,21 @@ interface EntryStats {
 
 export function useStats() {
   const { data: session } = useSession()
-  const isAdmin = (session?.user as any)?.role === 'admin'
+  const role = (session?.user as any)?.role
+  const isAdmin = role === 'admin'
+  const canUseEditorFeatures = role === 'admin' || role === 'editor'
 
   return useQuery({
-    queryKey: ['stats', { isAdmin }],
+    queryKey: ['stats', { isAdmin, canUseEditorFeatures }],
     queryFn: async () => {
-      // /admin/users is admin-only — only fetch it when the current user can.
+      // /admin/users is admin-only; /admin/media is editor-only — skip each
+      // when the current session can't reach it so viewers land on a clean
+      // dashboard instead of an error boundary.
       const [collections, media, entryStats, users] = await Promise.all([
         fetcher<Array<{ id: string }>>('/admin/collections'),
-        fetcher<PaginatedResponse<{ id: string }>>('/admin/media'),
+        canUseEditorFeatures
+          ? fetcher<PaginatedResponse<{ id: string }>>('/admin/media')
+          : Promise.resolve(null),
         fetcher<EntryStats>('/admin/entries/stats'),
         isAdmin ? fetcher<Array<{ id: string }>>('/admin/users') : Promise.resolve(null),
       ])
@@ -41,7 +47,7 @@ export function useStats() {
       const stats: Stats = {
         collections: collections.length,
         entries: entryStats.total,
-        media: media.meta.total,
+        media: media ? media.meta.total : undefined,
         users: users ? users.length : undefined,
       }
 
