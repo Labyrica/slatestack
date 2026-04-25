@@ -1,12 +1,25 @@
+import { useState } from 'react'
 import { Controller } from 'react-hook-form'
 import type { Control } from 'react-hook-form'
 import { Label } from '@/components/ui/label'
 import { useEditor, EditorContent, type Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import Image from '@tiptap/extension-image'
 import type { FieldDefinition } from '@/types/collection'
-import { Bold, Italic, List, ListOrdered, Heading2, Heading3, AlertCircle } from 'lucide-react'
+import {
+  Bold,
+  Italic,
+  List,
+  ListOrdered,
+  Heading2,
+  Heading3,
+  Image as ImageIcon,
+  AlertCircle,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { MediaPickerDialog } from '@/features/media/MediaPickerDialog'
+import type { MediaFile } from '@/types/media'
 
 interface RichTextFieldProps {
   field: FieldDefinition
@@ -21,10 +34,13 @@ interface RichTextEditorProps {
 }
 
 function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
+  const [isPickerOpen, setIsPickerOpen] = useState(false)
+
   const editor = useEditor({
     extensions: [
       StarterKit,
       Placeholder.configure({ placeholder }),
+      Image,
     ],
     content: value || '',
     onUpdate: ({ editor }) => {
@@ -37,15 +53,37 @@ function RichTextEditor({ value, onChange, placeholder }: RichTextEditorProps) {
     },
   })
 
+  const handleImageSelect = (media: MediaFile) => {
+    if (!editor) return
+    editor
+      .chain()
+      .focus()
+      .setImage({ src: media.url, alt: media.altText ?? undefined })
+      .run()
+  }
+
   return (
-    <div className="rounded-md border border-input bg-background">
-      <Toolbar editor={editor} />
-      <EditorContent editor={editor} />
-    </div>
+    <>
+      <div className="rounded-md border border-input bg-background">
+        <Toolbar editor={editor} onInsertImage={() => setIsPickerOpen(true)} />
+        <EditorContent editor={editor} />
+      </div>
+      <MediaPickerDialog
+        open={isPickerOpen}
+        onOpenChange={setIsPickerOpen}
+        onSelect={handleImageSelect}
+        accept="image/*"
+      />
+    </>
   )
 }
 
-function Toolbar({ editor }: { editor: Editor | null }) {
+interface ToolbarProps {
+  editor: Editor | null
+  onInsertImage: () => void
+}
+
+function Toolbar({ editor, onInsertImage }: ToolbarProps) {
   return (
     <div className="flex items-center gap-1 border-b border-input p-2">
       <Button
@@ -103,6 +141,17 @@ function Toolbar({ editor }: { editor: Editor | null }) {
         className={editor?.isActive('orderedList') ? 'bg-accent' : ''}
       >
         <ListOrdered className="h-4 w-4" />
+      </Button>
+      <div className="mx-2 h-6 w-px bg-border" />
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        onClick={onInsertImage}
+        disabled={!editor}
+        title="Insert image"
+      >
+        <ImageIcon className="h-4 w-4" />
       </Button>
     </div>
   )
