@@ -41,6 +41,17 @@ export const FieldDefinitionSchema: any = Type.Recursive((Self) =>
 
 // Note: FieldDefinition type is defined in content.types.ts
 
+const PermissionLevel = Type.Union([
+  Type.Literal("none"),
+  Type.Literal("read"),
+  Type.Literal("write"),
+]);
+
+export const CollectionPermissionsSchema = Type.Object({
+  editor: Type.Optional(PermissionLevel),
+  viewer: Type.Optional(PermissionLevel),
+});
+
 // Create collection schema
 export const CreateCollectionSchema = Type.Object({
   name: Type.String({ minLength: 1, maxLength: 100 }),
@@ -50,6 +61,8 @@ export const CreateCollectionSchema = Type.Object({
     pattern: "^[a-z0-9]+(?:-[a-z0-9]+)*$" // kebab-case validation
   }),
   fields: Type.Array(FieldDefinitionSchema, { minItems: 1 }),
+  permissions: Type.Optional(Type.Union([CollectionPermissionsSchema, Type.Null()])),
+  isForm: Type.Optional(Type.Boolean()),
 });
 
 export type CreateCollectionInput = Static<typeof CreateCollectionSchema>;
@@ -58,6 +71,8 @@ export type CreateCollectionInput = Static<typeof CreateCollectionSchema>;
 export const UpdateCollectionSchema = Type.Object({
   name: Type.Optional(Type.String({ minLength: 1, maxLength: 100 })),
   fields: Type.Optional(Type.Array(FieldDefinitionSchema, { minItems: 1 })),
+  permissions: Type.Optional(Type.Union([CollectionPermissionsSchema, Type.Null()])),
+  isForm: Type.Optional(Type.Boolean()),
 });
 
 export type UpdateCollectionInput = Static<typeof UpdateCollectionSchema>;
@@ -68,6 +83,8 @@ export const CollectionResponseSchema = Type.Object({
   name: Type.String(),
   slug: Type.String(),
   fields: Type.Array(FieldDefinitionSchema),
+  permissions: Type.Union([CollectionPermissionsSchema, Type.Null()]),
+  isForm: Type.Boolean(),
   createdAt: Type.String(),
   updatedAt: Type.String(),
 });

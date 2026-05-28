@@ -41,7 +41,8 @@ export const systemInfoRoutes: FastifyPluginAsync = async (fastify) => {
     }
   );
 
-  // POST /api/admin/restart - Gracefully restart the server (admin only)
+  // POST /api/admin/restart - Gracefully restart the server (admin only).
+  // Relies on the process manager (Docker, systemd, etc.) to bring it back.
   fastify.post<{ Reply: RestartResponse }>(
     "/api/admin/restart",
     {
@@ -53,11 +54,17 @@ export const systemInfoRoutes: FastifyPluginAsync = async (fastify) => {
       // Send response before exiting
       reply.send({ message: "Server is restarting..." });
 
-      // Delay exit to allow response to be sent
-      setTimeout(() => {
-        request.log.info("Shutting down for restart");
-        process.exit(0);
-      }, 500);
+      // Defer so the response flushes before we begin closing.
+      setImmediate(async () => {
+        try {
+          await fastify.close();
+          request.log.info("Shutting down for restart");
+        } catch (err) {
+          request.log.error({ err }, "Error closing server before restart");
+        } finally {
+          process.exit(0);
+        }
+      });
     }
   );
 };

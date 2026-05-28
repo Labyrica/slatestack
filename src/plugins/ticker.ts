@@ -1,48 +1,62 @@
 import fp from 'fastify-plugin';
-import { and, eq, isNotNull, lte } from 'drizzle-orm';
+import { inArray, sql } from 'drizzle-orm';
 import { db } from '../shared/database/index.js';
-import { entry, collection } from '../shared/database/schema.js';
+import { collection, entry } from '../shared/database/schema.js';
 import { processPendingDeliveries, enqueueEvent } from '../modules/webhooks/webhook.service.js';
 
 const SCHEDULED_PUBLISH_INTERVAL_MS = 60_000;
 const WEBHOOK_DELIVERY_INTERVAL_MS = 30_000;
 
 /**
- * Promote any draft entries whose publishAt has passed. Emits webhook events
- * for each published entry so subscribers can react (Netlify rebuild, etc.).
+ * Promote any draft entries whose publishAt has passed. Multi-instance-safe:
+ * the atomic UPDATE ... RETURNING serves as the claim — only the instance
+ * whose UPDATE actually changed the row will emit the webhook event, because
+ * the row's status is verified inside the same statement.
  */
 async function promoteScheduledEntries(log: { error: Function; info: Function }) {
   try {
-    const due = await db
-      .select({
-        id: entry.id,
-        slug: entry.slug,
-        status: entry.status,
-        data: entry.data,
-        collectionSlug: collection.slug,
-      })
-      .from(entry)
-      .innerJoin(collection, eq(collection.id, entry.collectionId))
-      .where(
-        and(
-          eq(entry.status, 'draft'),
-          isNotNull(entry.publishAt),
-          lte(entry.publishAt, new Date())
-        )
+    const result = await db.execute(sql`
+      UPDATE ${entry}
+      SET status = 'published',
+          publish_at = NULL,
+          "updatedAt" = NOW()
+      WHERE id IN (
+        SELECT e.id FROM ${entry} e
+        WHERE e.status = 'draft'
+          AND e.publish_at IS NOT NULL
+          AND e.publish_at <= NOW()
+        ORDER BY e.publish_at ASC
+        LIMIT 100
+        FOR UPDATE SKIP LOCKED
       )
-      .limit(100);
+      RETURNING id, slug, data, collection_id
+    `);
 
-    for (const row of due) {
-      await db
-        .update(entry)
-        .set({ status: 'published', publishAt: null, updatedAt: new Date() })
-        .where(eq(entry.id, row.id));
-      await enqueueEvent('entry.published', row.collectionSlug, {
+    const rows = ((result as any).rows ?? result) as Array<{
+      id: string;
+      slug: string;
+      data: Record<string, unknown>;
+      collection_id: string;
+    }>;
+    if (rows.length === 0) return;
+
+    // Resolve collection slugs for the rows we actually published.
+    const collIds = Array.from(new Set(rows.map((r) => r.collection_id)));
+    const slugRows = await db
+      .select({ id: collection.id, slug: collection.slug })
+      .from(collection)
+      .where(inArray(collection.id, collIds));
+    const slugById = new Map(slugRows.map((r) => [r.id, r.slug]));
+
+    for (const row of rows) {
+      const collectionSlug = slugById.get(row.collection_id);
+      if (!collectionSlug) continue;
+      await enqueueEvent('entry.published', collectionSlug, {
         id: row.id,
-        collection: row.collectionSlug,
+        collection: collectionSlug,
         slug: row.slug,
         status: 'published',
-        data: row.data as Record<string, unknown>,
+        data: row.data,
       });
     }
   } catch (err) {

@@ -6,6 +6,13 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.route({
     method: ["GET", "POST"],
     url: "/api/auth/*",
+    config: {
+      // Tight per-IP limit to slow brute-force against sign-in / reset / etc.
+      rateLimit: {
+        max: 20,
+        timeWindow: "1 minute",
+      },
+    },
     handler: async (request, reply) => {
       // Convert Fastify request to Web Request
       const url = new URL(request.url, `http://${request.headers.host}`);

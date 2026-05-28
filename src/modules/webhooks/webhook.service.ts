@@ -3,6 +3,7 @@ import { and, asc, desc, eq, inArray, isNull, lte, or, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { db } from '../../shared/database/index.js';
 import { webhook, webhookDelivery } from '../../shared/database/schema.js';
+import { BadRequestError } from '../../shared/errors/index.js';
 
 export type WebhookEvent =
   | 'entry.created'
@@ -23,6 +24,69 @@ const DELIVERY_TIMEOUT_MS = 10_000;
 const MAX_ATTEMPTS = 4; // initial + 3 retries
 const BACKOFF_STEPS_MS = [60_000, 5 * 60_000, 15 * 60_000];
 
+/**
+ * Reject webhook URLs that target internal infrastructure. Catches loopback,
+ * link-local (incl. cloud metadata 169.254.169.254), RFC1918 ranges, and
+ * IPv6 unspecified/loopback/ULA. Hostnames that resolve to those ranges at
+ * delivery time are not blocked here — this is admin-only input, so the
+ * goal is to stop accidents, not a determined attacker.
+ */
+function assertSafeWebhookUrl(rawUrl: string): URL {
+  let url: URL;
+  try {
+    url = new URL(rawUrl);
+  } catch {
+    throw new BadRequestError('Invalid webhook URL');
+  }
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    throw new BadRequestError(`Webhook URL must use http(s), got ${url.protocol}`);
+  }
+
+  const host = url.hostname.toLowerCase();
+
+  // Strip IPv6 brackets and zone ids.
+  const ipHost = host.startsWith('[') && host.endsWith(']') ? host.slice(1, -1) : host;
+  const ipCore = ipHost.split('%')[0];
+
+  // Block obvious hostnames.
+  if (host === 'localhost' || host === '0.0.0.0' || host === '::' || host === '::1') {
+    throw new BadRequestError('Webhook URL points to a local/loopback address');
+  }
+
+  // IPv4 numeric.
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(ipCore)) {
+    const parts = ipCore.split('.').map((p) => parseInt(p, 10));
+    if (parts.some((p) => Number.isNaN(p) || p < 0 || p > 255)) {
+      throw new BadRequestError('Invalid IPv4 in webhook URL');
+    }
+    const [a, b] = parts;
+    const isLoopback = a === 127;
+    const isPrivate10 = a === 10;
+    const isPrivate172 = a === 172 && b >= 16 && b <= 31;
+    const isPrivate192 = a === 192 && b === 168;
+    const isLinkLocal = a === 169 && b === 254;
+    const isCgnat = a === 100 && b >= 64 && b <= 127;
+    if (isLoopback || isPrivate10 || isPrivate172 || isPrivate192 || isLinkLocal || isCgnat) {
+      throw new BadRequestError('Webhook URL points to a private/loopback/link-local address');
+    }
+  }
+
+  // IPv6 numeric (very lightweight check).
+  if (ipCore.includes(':')) {
+    const lower = ipCore.toLowerCase();
+    if (
+      lower === '::1' ||
+      lower.startsWith('fe80:') || // link-local
+      lower.startsWith('fc') ||    // ULA fc00::/7
+      lower.startsWith('fd')
+    ) {
+      throw new BadRequestError('Webhook URL points to a private/loopback IPv6 address');
+    }
+  }
+
+  return url;
+}
+
 export async function createWebhook(input: {
   name: string;
   url: string;
@@ -30,6 +94,7 @@ export async function createWebhook(input: {
   collectionSlug?: string | null;
   createdBy: string;
 }) {
+  assertSafeWebhookUrl(input.url);
   const secret = crypto.randomBytes(24).toString('hex');
   const [row] = await db
     .insert(webhook)
@@ -60,7 +125,10 @@ export async function updateWebhook(id: string, patch: {
 }) {
   const updateData: Record<string, unknown> = { updatedAt: new Date() };
   if (patch.name !== undefined) updateData.name = patch.name;
-  if (patch.url !== undefined) updateData.url = patch.url;
+  if (patch.url !== undefined) {
+    assertSafeWebhookUrl(patch.url);
+    updateData.url = patch.url;
+  }
   if (patch.events !== undefined) updateData.events = patch.events;
   if (patch.collectionSlug !== undefined) updateData.collectionSlug = patch.collectionSlug;
   if (patch.enabled !== undefined) updateData.enabled = patch.enabled;

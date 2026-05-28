@@ -60,19 +60,13 @@ export const collectionRoutes: FastifyPluginAsync = async (fastify) => {
       body: CreateCollectionSchema,
       response: {
         201: CollectionResponseSchema,
+        400: ErrorResponseSchema,
         409: ErrorResponseSchema,
       },
     },
     handler: async (request, reply) => {
-      try {
-        const result = await createCollection(request.body);
-        return reply.status(201).send(result);
-      } catch (error) {
-        if (error instanceof Error && (error as any).code === "DUPLICATE_SLUG") {
-          return reply.status(409).send({ error: "Collection with this slug already exists" });
-        }
-        throw error;
-      }
+      const result = await createCollection(request.body);
+      return reply.status(201).send(result);
     },
   });
 
@@ -84,6 +78,7 @@ export const collectionRoutes: FastifyPluginAsync = async (fastify) => {
       body: UpdateCollectionSchema,
       response: {
         200: CollectionResponseSchema,
+        400: ErrorResponseSchema,
         404: ErrorResponseSchema,
       },
     },

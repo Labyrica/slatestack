@@ -77,3 +77,16 @@ export async function deleteSubmission(id: string): Promise<boolean> {
     .returning({ id: formSubmission.id });
   return result.length > 0;
 }
+
+/**
+ * Look up the owning collection id for a submission. Used to gate delete on
+ * per-collection write access rather than a blanket editor role.
+ */
+export async function getSubmissionCollectionId(id: string): Promise<string | null> {
+  const [row] = await db
+    .select({ collectionId: formSubmission.collectionId })
+    .from(formSubmission)
+    .where(eq(formSubmission.id, id))
+    .limit(1);
+  return row?.collectionId ?? null;
+}

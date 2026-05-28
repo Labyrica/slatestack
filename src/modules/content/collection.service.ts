@@ -8,8 +8,22 @@ import {
   UpdateCollectionInput,
   CollectionResponse,
 } from './collection.schemas.js';
+import { CollectionPermissions } from '../auth/auth.service.js';
 import { validateFieldDefinitions } from './content.validation.js';
-import { ValidationError } from '../../shared/errors/index.js';
+import { ConflictError, ValidationError } from '../../shared/errors/index.js';
+
+function toCollectionResponse(row: typeof collection.$inferSelect): CollectionResponse {
+  return {
+    id: row.id,
+    name: row.name,
+    slug: row.slug,
+    fields: row.fields as FieldDefinition[],
+    permissions: (row.permissions as CollectionPermissions | null) ?? null,
+    isForm: row.isForm,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
 
 /**
  * Create a new collection
@@ -37,9 +51,7 @@ export async function createCollection(
     .limit(1);
 
   if (existing.length > 0) {
-    const error = new Error('Collection with this slug already exists');
-    (error as any).code = 'DUPLICATE_SLUG';
-    throw error;
+    throw new ConflictError('Collection with this slug already exists');
   }
 
   // Insert collection
@@ -50,17 +62,12 @@ export async function createCollection(
       name: input.name,
       slug: input.slug,
       fields: input.fields,
+      permissions: input.permissions ?? null,
+      isForm: input.isForm ?? false,
     })
     .returning();
 
-  return {
-    id: newCollection.id,
-    name: newCollection.name,
-    slug: newCollection.slug,
-    fields: newCollection.fields as FieldDefinition[],
-    createdAt: newCollection.createdAt.toISOString(),
-    updatedAt: newCollection.updatedAt.toISOString(),
-  };
+  return toCollectionResponse(newCollection);
 }
 
 /**
@@ -79,14 +86,7 @@ export async function getCollection(
     return null;
   }
 
-  return {
-    id: result.id,
-    name: result.name,
-    slug: result.slug,
-    fields: result.fields as FieldDefinition[],
-    createdAt: result.createdAt.toISOString(),
-    updatedAt: result.updatedAt.toISOString(),
-  };
+  return toCollectionResponse(result);
 }
 
 /**
@@ -115,14 +115,7 @@ export async function listCollections(): Promise<CollectionResponse[]> {
     .from(collection)
     .orderBy(collection.name);
 
-  return collections.map((c) => ({
-    id: c.id,
-    name: c.name,
-    slug: c.slug,
-    fields: c.fields as FieldDefinition[],
-    createdAt: c.createdAt.toISOString(),
-    updatedAt: c.updatedAt.toISOString(),
-  }));
+  return collections.map(toCollectionResponse);
 }
 
 /**
@@ -146,17 +139,14 @@ export async function updateCollection(
   }
 
   // Build update object with only provided fields
-  const updateData: any = {
+  const updateData: Record<string, unknown> = {
     updatedAt: new Date(),
   };
 
-  if (input.name !== undefined) {
-    updateData.name = input.name;
-  }
-
-  if (input.fields !== undefined) {
-    updateData.fields = input.fields;
-  }
+  if (input.name !== undefined) updateData.name = input.name;
+  if (input.fields !== undefined) updateData.fields = input.fields;
+  if (input.permissions !== undefined) updateData.permissions = input.permissions;
+  if (input.isForm !== undefined) updateData.isForm = input.isForm;
 
   const [updated] = await db
     .update(collection)
@@ -168,14 +158,7 @@ export async function updateCollection(
     return null;
   }
 
-  return {
-    id: updated.id,
-    name: updated.name,
-    slug: updated.slug,
-    fields: updated.fields as FieldDefinition[],
-    createdAt: updated.createdAt.toISOString(),
-    updatedAt: updated.updatedAt.toISOString(),
-  };
+  return toCollectionResponse(updated);
 }
 
 /**

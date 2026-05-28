@@ -423,38 +423,49 @@ export async function deleteEntry(
  * Find entries that reference the given entry ID. Used to surface orphan-risk
  * warnings to the admin UI before a delete. Does NOT prevent deletion —
  * dangling references are intentionally left to the frontend to handle.
+ *
+ * Implementation: enumerate every (collection, reference-field) pair from the
+ * schema metadata, then issue a targeted jsonb query per pair. This avoids
+ * the full-table `data::text LIKE '%id%'` scan the original used, and lets
+ * Postgres use the collection_id index for each query.
  */
 export async function findReferencers(
   entryId: string
 ): Promise<Array<{ collectionSlug: string; collectionName: string; entryId: string; entrySlug: string; fieldName: string }>> {
-  // Find any collection that references this entry via jsonb lookup.
-  // We search all entries whose data contains this id (as value or array item).
-  const results = await db.execute(sql`
-    SELECT e.id, e.slug, e.data, c.slug as collection_slug, c.name as collection_name, c.fields
-    FROM entry e
-    JOIN collection c ON c.id = e.collection_id
-    WHERE e.data::text LIKE ${'%' + entryId + '%'}
-    LIMIT 50
-  `);
+  const collections = await db.select().from(collection);
 
-  const rows = (results as any).rows ?? results;
   const out: Array<{ collectionSlug: string; collectionName: string; entryId: string; entrySlug: string; fieldName: string }> = [];
+  const RESULT_CAP = 50;
 
-  for (const row of rows as any[]) {
-    const data = row.data as Record<string, unknown>;
-    const fields = row.fields as FieldDefinition[];
-    const refFields = fields.filter((f) => f.type === 'reference' || f.type === 'multi-reference');
-    for (const f of refFields) {
-      const val = data[f.name];
-      const matches = Array.isArray(val)
-        ? val.includes(entryId)
-        : val === entryId;
-      if (matches) {
+  for (const coll of collections) {
+    if (out.length >= RESULT_CAP) break;
+    const fields = coll.fields as FieldDefinition[];
+    for (const f of fields) {
+      if (out.length >= RESULT_CAP) break;
+      if (f.type !== 'reference' && f.type !== 'multi-reference') continue;
+
+      const remaining = RESULT_CAP - out.length;
+      const rows = f.type === 'reference'
+        ? await db.execute(sql`
+            SELECT id, slug FROM entry
+            WHERE "collectionId" = ${coll.id}
+              AND data->>${f.name} = ${entryId}
+            LIMIT ${sql.raw(String(remaining))}
+          `)
+        : await db.execute(sql`
+            SELECT id, slug FROM entry
+            WHERE "collectionId" = ${coll.id}
+              AND data->${f.name} @> ${JSON.stringify([entryId])}::jsonb
+            LIMIT ${sql.raw(String(remaining))}
+          `);
+
+      const matched = ((rows as any).rows ?? rows) as Array<{ id: string; slug: string }>;
+      for (const r of matched) {
         out.push({
-          collectionSlug: row.collection_slug,
-          collectionName: row.collection_name,
-          entryId: row.id,
-          entrySlug: row.slug,
+          collectionSlug: coll.slug,
+          collectionName: coll.name,
+          entryId: r.id,
+          entrySlug: r.slug,
           fieldName: f.name,
         });
       }

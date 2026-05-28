@@ -359,7 +359,7 @@ export async function createDatabaseBackup(): Promise<BackupResult> {
 
     const pgDump = spawn('pg_dump', args, {
       env: { ...process.env, PGPASSWORD: password },
-      shell: true,
+      shell: false,
     });
 
     let stderr = '';
@@ -501,7 +501,7 @@ export async function runMigrations(): Promise<MigrationResult> {
   return new Promise((resolve) => {
     const migrate = spawn('npx', ['drizzle-kit', 'migrate'], {
       cwd: process.cwd(),
-      shell: true,
+      shell: false,
       env: process.env,
     });
 
@@ -567,7 +567,7 @@ export async function rollback(dbBackupPath: string, uploadsBackupPath: string):
 
       const psql = spawn('psql', args, {
         env: { ...process.env, PGPASSWORD: password },
-        shell: true,
+        shell: false,
       });
 
       let stderr = '';

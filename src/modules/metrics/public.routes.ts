@@ -1,14 +1,8 @@
 import { FastifyPluginAsync } from "fastify";
-import rateLimit from "@fastify/rate-limit";
 import { VisitorStatsSchema } from "./public.schemas.js";
 import { getVisitorStats } from "./metrics.queries.js";
 
 export const metricsPublicRoutes: FastifyPluginAsync = async (fastify) => {
-  // Register rate limit plugin for this route scope
-  await fastify.register(rateLimit, {
-    global: false,
-  });
-
   // GET /api/metrics/stats - Public endpoint for aggregate visitor stats
   fastify.get(
     "/api/metrics/stats",
