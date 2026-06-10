@@ -15,6 +15,26 @@ import { collection } from '../../shared/database/schema.js';
 import { enqueueEvent } from '../webhooks/webhook.service.js';
 import { recordRevision, REVISION_LIMIT } from './revision.service.js';
 
+const MAX_PAGE_SIZE = 100;
+
+/**
+ * Clamp caller-supplied pagination so a bad or malicious limit/page can't
+ * force huge result sets or absurd offsets.
+ */
+export function clampPagination(options?: { page?: number; limit?: number }): {
+  page: number;
+  limit: number;
+  offset: number;
+} {
+  const rawPage = options?.page;
+  const rawLimit = options?.limit;
+  const page = Number.isFinite(rawPage) ? Math.max(1, Math.floor(rawPage!)) : 1;
+  const limit = Number.isFinite(rawLimit)
+    ? Math.min(MAX_PAGE_SIZE, Math.max(1, Math.floor(rawLimit!)))
+    : 20;
+  return { page, limit, offset: (page - 1) * limit };
+}
+
 function toEntryResponse(e: typeof entry.$inferSelect): EntryResponse {
   return {
     id: e.id,
@@ -224,9 +244,7 @@ export async function listEntries(
     limit?: number;
   }
 ): Promise<{ entries: EntryResponse[]; total: number }> {
-  const page = options?.page ?? 1;
-  const limit = options?.limit ?? 20;
-  const offset = (page - 1) * limit;
+  const { limit, offset } = clampPagination(options);
 
   const conditions = options?.status
     ? and(eq(entry.collectionId, collectionId), eq(entry.status, options.status))
@@ -260,9 +278,7 @@ export async function searchEntries(
   collectionId: string,
   options: SearchEntriesQuery
 ): Promise<{ entries: EntryResponse[]; total: number }> {
-  const page = options.page ?? 1;
-  const limit = options.limit ?? 20;
-  const offset = (page - 1) * limit;
+  const { limit, offset } = clampPagination(options);
 
   // Build base conditions
   const conditions = [eq(entry.collectionId, collectionId)];
@@ -512,9 +528,7 @@ export async function listPublishedEntries(
     throw new NotFoundError('Collection', collectionSlug);
   }
 
-  const page = options.page ?? 1;
-  const limit = options.limit ?? 20;
-  const offset = (page - 1) * limit;
+  const { limit, offset } = clampPagination(options);
 
   // Query published entries with pagination
   const results = await db

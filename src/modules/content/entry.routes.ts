@@ -14,6 +14,7 @@ import {
   searchEntries,
   getEntryStats,
   findReferencers,
+  clampPagination,
 } from './entry.service.js';
 import {
   CreateEntrySchema,
@@ -55,8 +56,11 @@ export const entryRoutes: FastifyPluginAsync = async (fastify) => {
       const { collectionId } = request.params;
       const { q, status, page: pageStr, limit: limitStr } = request.query;
 
-      const page = pageStr ? parseInt(pageStr, 10) : 1;
-      const limit = limitStr ? parseInt(limitStr, 10) : 20;
+      // Clamp here too so the reported meta matches what the service returns.
+      const { page, limit } = clampPagination({
+        page: pageStr ? parseInt(pageStr, 10) : undefined,
+        limit: limitStr ? parseInt(limitStr, 10) : undefined,
+      });
 
       const result = q || pageStr || limitStr
         ? await searchEntries(collectionId, { q, status, page, limit })

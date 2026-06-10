@@ -55,6 +55,12 @@ export const formRoutes: FastifyPluginAsync = async (fastify) => {
     handler: async (request, reply) => {
       const { id } = request.params as { id: string };
 
+      // Authenticate before touching the database — otherwise anonymous
+      // callers could enumerate which submission IDs exist via 404 vs 401.
+      if (!request.user && !request.apiKey) {
+        return reply.code(401).send({ error: 'Unauthorized' });
+      }
+
       const collectionId = await getSubmissionCollectionId(id);
       if (!collectionId) {
         throw new NotFoundError('Submission', id);
@@ -62,10 +68,6 @@ export const formRoutes: FastifyPluginAsync = async (fastify) => {
 
       const coll = await getCollectionAccessInfo(collectionId);
       if (!coll) throw new NotFoundError('Collection', collectionId);
-
-      if (!request.user && !request.apiKey) {
-        return reply.code(401).send({ error: 'Unauthorized' });
-      }
 
       const access = resolveCollectionAccess(
         request.user ? { role: request.user.role } : null,

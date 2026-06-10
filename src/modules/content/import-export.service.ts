@@ -66,70 +66,79 @@ export async function importCollection(
 
   const result: ImportResult = { inserted: 0, updated: 0, skipped: 0, errors: [] };
 
-  if (options.replace) {
-    await db.delete(entry).where(eq(entry.collectionId, coll.id));
-  }
+  // Single transaction so a crash mid-import can't leave the collection
+  // half-replaced (the delete and the inserts commit or roll back together).
+  // Per-item validation failures are still recorded and skipped, not fatal.
+  await db.transaction(async (tx) => {
+    if (options.replace) {
+      await tx.delete(entry).where(eq(entry.collectionId, coll.id));
+    }
 
-  for (let i = 0; i < payload.entries.length; i++) {
-    const item = payload.entries[i];
-    try {
-      if (!item.data || typeof item.data !== 'object') {
-        throw new ValidationError('entry.data is required');
-      }
-      const validation = validateEntryData(coll.fields, item.data);
-      if (!validation.valid) {
+    for (let i = 0; i < payload.entries.length; i++) {
+      const item = payload.entries[i];
+      try {
+        if (!item.data || typeof item.data !== 'object') {
+          throw new ValidationError('entry.data is required');
+        }
+        const validation = validateEntryData(coll.fields, item.data);
+        if (!validation.valid) {
+          result.errors.push({
+            slug: item.slug,
+            index: i,
+            message: validation.errors.join('; '),
+          });
+          result.skipped++;
+          continue;
+        }
+
+        // Savepoint per item: a DB error (e.g. duplicate slug) rolls back
+        // just this item instead of poisoning the outer transaction.
+        await tx.transaction(async (sp) => {
+          const slug = item.slug || await ensureUniqueSlug(coll.id, generateSlug(String(item.data.title ?? nanoid(8))), undefined, sp);
+          const existing = options.replace
+            ? null
+            : await sp
+                .select({ id: entry.id })
+                .from(entry)
+                .where(and(eq(entry.collectionId, coll.id), eq(entry.slug, slug)))
+                .limit(1)
+                .then((r) => r[0] ?? null);
+
+          if (existing) {
+            await sp
+              .update(entry)
+              .set({
+                data: item.data,
+                status: item.status ?? 'draft',
+                position: item.position ?? 0,
+                updatedAt: new Date(),
+              })
+              .where(eq(entry.id, existing.id));
+            result.updated++;
+          } else {
+            await sp.insert(entry).values({
+              id: nanoid(),
+              collectionId: coll.id,
+              slug,
+              data: item.data,
+              status: item.status ?? 'draft',
+              position: item.position ?? 0,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            });
+            result.inserted++;
+          }
+        });
+      } catch (err: any) {
         result.errors.push({
           slug: item.slug,
           index: i,
-          message: validation.errors.join('; '),
+          message: err?.message ?? String(err),
         });
         result.skipped++;
-        continue;
       }
-
-      const slug = item.slug || await ensureUniqueSlug(coll.id, generateSlug(String(item.data.title ?? nanoid(8))));
-      const existing = options.replace
-        ? null
-        : await db
-            .select({ id: entry.id })
-            .from(entry)
-            .where(and(eq(entry.collectionId, coll.id), eq(entry.slug, slug)))
-            .limit(1)
-            .then((r) => r[0] ?? null);
-
-      if (existing) {
-        await db
-          .update(entry)
-          .set({
-            data: item.data,
-            status: item.status ?? 'draft',
-            position: item.position ?? 0,
-            updatedAt: new Date(),
-          })
-          .where(eq(entry.id, existing.id));
-        result.updated++;
-      } else {
-        await db.insert(entry).values({
-          id: nanoid(),
-          collectionId: coll.id,
-          slug,
-          data: item.data,
-          status: item.status ?? 'draft',
-          position: item.position ?? 0,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
-        result.inserted++;
-      }
-    } catch (err: any) {
-      result.errors.push({
-        slug: item.slug,
-        index: i,
-        message: err?.message ?? String(err),
-      });
-      result.skipped++;
     }
-  }
+  });
 
   return result;
 }

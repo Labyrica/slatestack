@@ -17,6 +17,9 @@ export function generateSlug(text: string): string {
   });
 }
 
+/** Anything that can run a select — the global db or an open transaction. */
+export type SlugExecutor = Pick<typeof db, 'select'>;
+
 /**
  * Ensure slug is unique within collection by appending counter if needed
  * Uses retry pattern for race condition handling
@@ -24,7 +27,8 @@ export function generateSlug(text: string): string {
 export async function ensureUniqueSlug(
   collectionId: string,
   baseSlug: string,
-  excludeEntryId?: string
+  excludeEntryId?: string,
+  executor: SlugExecutor = db
 ): Promise<string> {
   let slug = baseSlug;
   let counter = 0;
@@ -38,7 +42,7 @@ export async function ensureUniqueSlug(
         )
       : and(eq(entry.collectionId, collectionId), eq(entry.slug, slug));
 
-    const existing = await db
+    const existing = await executor
       .select({ id: entry.id })
       .from(entry)
       .where(conditions)
