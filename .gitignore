@@ -33,6 +33,8 @@ test-*.jpg
 test-*.png
 test-*.gif
 test-*.webp
+test-*.pdf
+test-*.txt
 debug-*.json
 login-response*.json
 
