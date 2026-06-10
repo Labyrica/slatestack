@@ -8,6 +8,7 @@ import fs from "fs/promises";
 import crypto from "crypto";
 import { eq, or, ilike, sql, desc, count, inArray, sum } from "drizzle-orm";
 import type { MediaFileInput, MediaFileResponse, MediaVariants, ImageVariant } from "./media.types.js";
+import { logger } from "../../shared/logger.js";
 
 const VARIANT_SIZES: Array<{ name: keyof MediaVariants; width: number }> = [
   { name: "thumbnail", width: 200 },
@@ -130,8 +131,7 @@ export async function processImage(
       };
     } catch (err) {
       // Leave the variant out on failure; original is still stored.
-      // eslint-disable-next-line no-console
-      console.warn(`Variant '${name}' failed for ${filePath}:`, err);
+      logger.warn({ err, variant: name, filePath }, 'media variant generation failed');
     }
   }
 
@@ -366,7 +366,7 @@ export async function deleteMedia(id: string): Promise<void> {
     }
   } catch (error) {
     // Log error but continue with database deletion
-    console.error("Error deleting files:", error);
+    logger.error({ err: error }, 'failed to delete media files from disk');
   }
 
   // Delete database record

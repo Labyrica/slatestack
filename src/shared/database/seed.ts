@@ -2,20 +2,21 @@ import { db } from "./index.js";
 import { user, account } from "./schema.js";
 import { auth } from "../../modules/auth/auth.config.js";
 import { nanoid } from "nanoid";
+import { logger } from "../logger.js";
 
 export async function seedAdminUser() {
   const adminEmail = process.env.ADMIN_EMAIL;
   const adminPassword = process.env.ADMIN_PASSWORD;
 
   if (!adminEmail || !adminPassword) {
-    console.log("ADMIN_EMAIL or ADMIN_PASSWORD not set, skipping admin seed");
+    logger.info("ADMIN_EMAIL or ADMIN_PASSWORD not set, skipping admin seed");
     return;
   }
 
   // Check if any users exist
   const existingUsers = await db.select().from(user).limit(1);
   if (existingUsers.length > 0) {
-    console.log("Users already exist, skipping admin seed");
+    logger.info("Users already exist, skipping admin seed");
     return;
   }
 
@@ -50,5 +51,5 @@ export async function seedAdminUser() {
     updatedAt: new Date(),
   });
 
-  console.log(`Admin user created: ${adminEmail}`);
+  logger.info({ adminEmail }, "Admin user created");
 }

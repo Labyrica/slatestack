@@ -8,6 +8,7 @@ import { generateSlug, ensureUniqueSlug } from './slug.utils.js';
 import { CreateEntryInput, UpdateEntryInput, EntryResponse, SearchEntriesQuery } from './entry.schemas.js';
 import { PublicEntry } from './public.schemas.js';
 import { NotFoundError, ValidationError } from '../../shared/errors/index.js';
+import { logger } from '../../shared/logger.js';
 import { ParsedQuery } from './query.parser.js';
 import { buildFilterSql, buildSortSql, projectFields } from './query.translator.js';
 import { FieldDefinition } from './content.types.js';
@@ -63,8 +64,7 @@ async function emitEntryEvent(
     await enqueueEvent(event, collectionSlug, entryData);
   } catch (err) {
     // Never block the request path on webhook enqueue failures.
-    // eslint-disable-next-line no-console
-    console.warn(`enqueueEvent failed for ${event}:`, err);
+    logger.warn({ err, event, collectionSlug }, 'enqueueEvent failed');
   }
 }
 
