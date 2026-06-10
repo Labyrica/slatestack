@@ -450,13 +450,13 @@ export async function findReferencers(
             SELECT id, slug FROM entry
             WHERE "collectionId" = ${coll.id}
               AND data->>${f.name} = ${entryId}
-            LIMIT ${sql.raw(String(remaining))}
+            LIMIT ${remaining}
           `)
         : await db.execute(sql`
             SELECT id, slug FROM entry
             WHERE "collectionId" = ${coll.id}
               AND data->${f.name} @> ${JSON.stringify([entryId])}::jsonb
-            LIMIT ${sql.raw(String(remaining))}
+            LIMIT ${remaining}
           `);
 
       const matched = ((rows as any).rows ?? rows) as Array<{ id: string; slug: string }>;
@@ -493,8 +493,8 @@ export async function reorderEntries(
   await db.execute(sql`
     UPDATE entry
     SET position = CASE id ${cases} END,
-        updated_at = NOW()
-    WHERE collection_id = ${collectionId}
+        "updatedAt" = NOW()
+    WHERE "collectionId" = ${collectionId}
       AND id IN ${sql`(${sql.join(orderedIds.map(id => sql`${id}`), sql`, `)})`}
   `);
 }

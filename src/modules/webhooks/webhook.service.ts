@@ -256,6 +256,8 @@ async function deliverOne(delivery: typeof webhookDelivery.$inferSelect, hook: t
  * checking-and-setting nextAttemptAt to NULL before fire.
  */
 export async function processPendingDeliveries(limit = 20) {
+  // RETURNING goes through db.execute, which yields raw column names —
+  // alias the snake_case columns back to the camelCase keys of $inferSelect.
   const claimed = await db.execute(sql`
     UPDATE webhook_delivery
     SET next_attempt_at = NULL
@@ -265,10 +267,20 @@ export async function processPendingDeliveries(limit = 20) {
         AND next_attempt_at IS NOT NULL
         AND next_attempt_at <= NOW()
       ORDER BY next_attempt_at ASC
-      LIMIT ${sql.raw(String(limit))}
+      LIMIT ${limit}
       FOR UPDATE SKIP LOCKED
     )
-    RETURNING *
+    RETURNING
+      id,
+      webhook_id AS "webhookId",
+      event,
+      payload,
+      status,
+      attempts,
+      last_error AS "lastError",
+      next_attempt_at AS "nextAttemptAt",
+      delivered_at AS "deliveredAt",
+      "createdAt"
   `);
 
   const rows = ((claimed as any).rows ?? claimed) as typeof webhookDelivery.$inferSelect[];

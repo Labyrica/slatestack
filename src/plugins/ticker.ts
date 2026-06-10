@@ -29,7 +29,7 @@ async function promoteScheduledEntries(log: { error: Function; info: Function })
         LIMIT 100
         FOR UPDATE SKIP LOCKED
       )
-      RETURNING id, slug, data, collection_id
+      RETURNING id, slug, data, "collectionId" AS collection_id
     `);
 
     const rows = ((result as any).rows ?? result) as Array<{
@@ -69,7 +69,11 @@ export default fp(async (fastify) => {
   let deliveryTimer: NodeJS.Timeout | null = null;
 
   const tickPublish = async () => {
-    await promoteScheduledEntries(fastify.log);
+    try {
+      await promoteScheduledEntries(fastify.log);
+    } catch (err) {
+      fastify.log.error({ err }, 'scheduled publish tick failed');
+    }
     publishTimer = setTimeout(tickPublish, SCHEDULED_PUBLISH_INTERVAL_MS);
   };
 
