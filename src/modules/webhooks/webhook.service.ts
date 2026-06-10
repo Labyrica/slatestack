@@ -31,7 +31,7 @@ const BACKOFF_STEPS_MS = [60_000, 5 * 60_000, 15 * 60_000];
  * delivery time are not blocked here — this is admin-only input, so the
  * goal is to stop accidents, not a determined attacker.
  */
-function assertSafeWebhookUrl(rawUrl: string): URL {
+export function assertSafeWebhookUrl(rawUrl: string): URL {
   let url: URL;
   try {
     url = new URL(rawUrl);
